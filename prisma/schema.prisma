@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  password            String?
+  name                String?
+  avatarUrl           String?
+  targetRole          String?
+  experienceLevel     String?
+  planTier            String    @default("FREE")
+  lastLoginAt         DateTime?
+  emailVerified       DateTime?
+  stripeCustomerId    String?
+  interviewUsageMonth Int       @default(0)
+  interviewUsageReset DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  resumes           Resume[]
+  sessions          InterviewSession[]
+  skillAssessments  SkillAssessment[]
+  learningPaths     LearningPath[]
+  paymentRecords    PaymentRecord[]
+
+  @@map("users")
+}
+
+model Resume {
+  id          String   @id @default(uuid())
+  userId      String
+  fileUrl     String?
+  fileName    String
+  parsedText  String?
+  rawAiOutput String?
+  isCurrent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills       ParsedSkill[]
+  experiences  ParsedExperience[]
+  educations   ParsedEducation[]
+  sessions     InterviewSession[]
+
+  @@map("resumes")
+}
+
+model ParsedSkill {
+  id       String @id @default(uuid())
+  resumeId String
+  name     String
+  category String?
+  level    String?
+  yearsExp Float?
+
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("parsed_skills")
+}
+
+model ParsedExperience {
+  id          String @id @default(uuid())
+  resumeId    String
+  company     String
+  title       String
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+  highlights  String?
+
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("parsed_experiences")
+}
+
+model ParsedEducation {
+  id        String @id @default(uuid())
+  resumeId  String
+  school    String
+  degree    String?
+  field     String?
+  startYear Int?
+  endYear   Int?
+
+  resume    Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("parsed_educations")
+}
+
+model InterviewSession {
+  id            String    @id @default(uuid())
+  userId        String
+  resumeId      String?
+  jdText        String?
+  jdUrl         String?
+  interviewType String    @default("MIXED")
+  difficulty    String    @default("MID")
+  mode          String    @default("TEXT")
+  status        String    @default("CREATED")
+  questionCount Int       @default(10)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume        Resume?           @relation(fields: [resumeId], references: [id])
+  questions     InterviewQuestion[]
+  feedbackReport FeedbackReport?
+
+  @@map("interview_sessions")
+}
+
+model InterviewQuestion {
+  id              String   @id @default(uuid())
+  sessionId       String
+  sequenceNumber  Int
+  questionText    String
+  questionType    String?
+  category        String?
+  isAnswered      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  session         InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  responses       QuestionResponse[]
+  feedback        QuestionFeedback?
+
+  @@map("interview_questions")
+}
+
+model QuestionResponse {
+  id              String   @id @default(uuid())
+  questionId      String
+  responseText    String?
+  audioUrl        String?
+  transcribedText String?
+  responseTimeMs  Int?
+  wordCount       Int?
+  createdAt       DateTime @default(now())
+
+  question        InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("question_responses")
+}
+
+model FeedbackReport {
+  id              String    @id @default(uuid())
+  sessionId       String    @unique
+  overallScore    Float?
+  dimensionScores String?
+  strengths       String?
+  weaknesses      String?
+  summary         String?
+  rawAiOutput     String?
+  generatedAt     DateTime  @default(now())
+
+  session         InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("feedback_reports")
+}
+
+model QuestionFeedback {
+  id            String   @id @default(uuid())
+  questionId    String   @unique
+  score         Float?
+  strengths     String?
+  improvements  String?
+  modelAnswer   String?
+  coachingTip   String?
+
+  question      InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("question_feedbacks")
+}
+
+model SkillAssessment {
+  id              String   @id @default(uuid())
+  userId          String
+  targetRole      String?
+  currentSkills   String?
+  targetSkills    String?
+  gaps            String?
+  recommendations String?
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("skill_assessments")
+}
+
+model LearningPath {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  goalRole  String?
+  items     String?
+  progress  Float    @default(0)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("learning_paths")
+}
+
+model PaymentRecord {
+  id              String   @id @default(uuid())
+  userId          String
+  stripeInvoiceId String?
+  amount          Int
+  currency        String   @default("usd")
+  status          String
+  planTier        String
+  periodStart     DateTime
+  periodEnd       DateTime
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_records")
+}
