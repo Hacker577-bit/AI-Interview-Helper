@@ -43,6 +43,23 @@
                     <span class="text-muted ms-2">{{ current_question.category }}</span>
                 </div>
                 <h4 class="mb-4">{{ current_question.question_text }}</h4>
+
+                {% if session.mode == 'VOICE' %}
+                <div class="voice-controls mb-4 p-3 rounded" style="background:#f1f3f5;">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <button type="button" id="playQuestion" class="btn btn-outline-primary">
+                            <i class="bi bi-volume-up me-2"></i>Play Question
+                        </button>
+                        <button type="button" id="recordBtn" class="btn btn-success">
+                            <i class="bi bi-mic me-2"></i>Record Answer
+                        </button>
+                        <button type="button" id="stopBtn" class="btn btn-danger d-none">
+                            <i class="bi bi-stop-circle me-2"></i>Stop
+                        </button>
+                        <span id="voiceStatus" class="text-muted ms-2">Click play to hear the question, then record your answer.</span>
+                    </div>
+                </div>
+                {% endif %}
                 
                 <form id="responseForm" data-question-id="{{ current_question.id }}">
                     <input type="hidden" id="startTime" value="{{ current_question.created_at.timestamp() }}">
@@ -137,5 +154,110 @@ form.addEventListener('submit', async function(e) {
 });
 
 form.action = '/interviews/{{ session.id }}/submit/{{ current_question.id }}';
+
+{% if session.mode == 'VOICE' %}
+// Voice Mode: text-to-speech + speech-to-text via Web Speech API
+const questionText = document.querySelector('.question-card h4').textContent;
+const playBtn = document.getElementById('playQuestion');
+const recordBtn = document.getElementById('recordBtn');
+const stopBtn = document.getElementById('stopBtn');
+const voiceStatus = document.getElementById('voiceStatus');
+
+function speak(text) {
+    if (!('speechSynthesis' in window)) {
+        voiceStatus.textContent = 'Text-to-speech not supported in this browser.';
+        return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+}
+
+let recognition = null;
+let finalTranscript = '';
+
+function setupRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+        voiceStatus.textContent = 'Speech recognition not supported. Please type your answer instead.';
+        recordBtn.disabled = true;
+        return null;
+    }
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+
+    rec.onstart = function() {
+        recordBtn.classList.add('d-none');
+        stopBtn.classList.remove('d-none');
+        voiceStatus.textContent = 'Listening... speak your answer now.';
+        finalTranscript = '';
+    };
+
+    rec.onresult = function(event) {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const res = event.results[i];
+            if (res.isFinal) {
+                finalTranscript += res[0].transcript;
+            } else {
+                interim += res[0].transcript;
+            }
+        }
+        textArea.value = (finalTranscript + ' ' + interim).trim();
+        const words = textArea.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+        wordCount.textContent = words + ' word' + (words !== 1 ? 's' : '');
+    };
+
+    rec.onerror = function(event) {
+        voiceStatus.textContent = 'Recording error: ' + event.error + '. You can type your answer instead.';
+        resetVoiceUI();
+    };
+
+    rec.onend = function() {
+        resetVoiceUI();
+        if (textArea.value.trim()) {
+            voiceStatus.textContent = 'Answer captured. You can edit it or submit below.';
+        } else {
+            voiceStatus.textContent = 'No speech detected. Try again or type your answer.';
+        }
+    };
+
+    return rec;
+}
+
+function resetVoiceUI() {
+    recordBtn.classList.remove('d-none');
+    stopBtn.classList.add('d-none');
+}
+
+playBtn.addEventListener('click', function() {
+    speak(questionText);
+});
+
+recordBtn.addEventListener('click', function() {
+    if (!recognition) {
+        recognition = setupRecognition();
+    }
+    if (recognition) {
+        try {
+            recognition.start();
+        } catch (e) {
+            voiceStatus.textContent = 'Recording already in progress.';
+        }
+    }
+});
+
+stopBtn.addEventListener('click', function() {
+    if (recognition) recognition.stop();
+});
+
+window.addEventListener('load', function() {
+    speak(questionText);
+});
+{% endif %}
 </script>
 {% endblock %}

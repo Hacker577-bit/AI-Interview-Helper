@@ -41,7 +41,8 @@ class InterviewForm(FlaskForm):
     ], validators=[DataRequired()])
     
     mode = SelectField('Mode', choices=[
-        ('TEXT', 'Text Mode')
+        ('TEXT', 'Text Mode'),
+        ('VOICE', 'Voice Mode')
     ], validators=[DataRequired()])
     
     job_description = TextAreaField('Job Description (Optional)', validators=[Optional()])
