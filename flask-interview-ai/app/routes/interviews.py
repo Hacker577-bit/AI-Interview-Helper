@@ -61,7 +61,10 @@ def start(session_id):
         flash('Access denied', 'error')
         return redirect(url_for('dashboard.index'))
     
-    unanswered = Question.query.filter_by(session_id=session_id).order_by(Question.sequence_number).first()
+    unanswered = Question.query.filter(
+        Question.session_id == session_id,
+        ~Question.responses.any()
+    ).order_by(Question.sequence_number).first()
     
     if not unanswered:
         return redirect(url_for('interviews.complete', session_id=session_id))
