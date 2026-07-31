@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - AI Interview Prep{% endblock %}
+
+{% block content %}
+<div class="auth-card" style="max-width: 450px; width: 100%;">
+    <div class="text-center mb-4">
+        <i class="bi bi-robot text-primary" style="font-size: 3rem;"></i>
+        <h2 class="mt-3">Welcome Back</h2>
+        <p class="text-muted">Sign in to continue your interview prep</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="email" name="email" required autofocus>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+            <label class="form-check-label" for="remember">Remember me</label>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2">Sign In</button>
+    </form>
+
+    <div class="text-center mt-4">
+        <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a></p>
+    </div>
+</div>
+{% endblock %}

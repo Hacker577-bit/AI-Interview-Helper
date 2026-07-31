@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Feedback - AI Interview Prep{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #f8f9fa; }
+    .feedback-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    .score-excellent { background: #10b981; color: white; }
+    .score-good { background: #3b82f6; color: white; }
+    .score-average { background: #f59e0b; color: white; }
+    .score-poor { background: #ef4444; color: white; }
+    .dimension-bar {
+        height: 10px;
+        border-radius: 5px;
+        background: #e5e7eb;
+        overflow: hidden;
+    }
+    .dimension-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.5s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Interview Feedback</h2>
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="feedback-card text-center mb-4">
+                        <h5 class="mb-3">Overall Score</h5>
+                        {% set score = feedback.overall_score or 0 %}
+                        <div class="score-circle mx-auto {% if score >= 8 %}score-excellent{% elif score >= 6 %}score-good{% elif score >= 4 %}score-average{% else %}score-poor{% endif %}">
+                            {{ "%.1f"|format(score) }}
+                        </div>
+                        <p class="text-muted mt-2">out of 10</p>
+                    </div>
+
+                    <div class="feedback-card">
+                        <h5 class="mb-3">Dimension Breakdown</h5>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Clarity</span>
+                                <span>{{ "%.0f"|format(feedback.clarity_score or 0) }}/10</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill bg-primary" style="width: {{ (feedback.clarity_score or 0) * 10 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Relevance</span>
+                                <span>{{ "%.0f"|format(feedback.relevance_score or 0) }}/10</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill bg-success" style="width: {{ (feedback.relevance_score or 0) * 10 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Depth</span>
+                                <span>{{ "%.0f"|format(feedback.depth_score or 0) }}/10</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill bg-info" style="width: {{ (feedback.depth_score or 0) * 10 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Impact</span>
+                                <span>{{ "%.0f"|format(feedback.impact_score or 0) }}/10</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill bg-warning" style="width: {{ (feedback.impact_score or 0) * 10 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="feedback-card mb-4">
+                        <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Summary</h5>
+                        <p>{{ feedback.summary or 'No summary available' }}</p>
+                    </div>
+
+                    <div class="feedback-card mb-4">
+                        <h5 class="mb-3"><i class="bi bi-check-circle text-success me-2"></i>Strengths</h5>
+                        <ul class="list-unstyled">
+                            {% for strength in feedback.strengths.split(' | ') if strength %}
+                            <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>{{ strength }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="feedback-card mb-4">
+                        <h5 class="mb-3"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Areas for Improvement</h5>
+                        <ul class="list-unstyled">
+                            {% for weakness in feedback.weaknesses.split(' | ') if weakness %}
+                            <li class="mb-2"><i class="bi bi-arrow-up-circle text-primary me-2"></i>{{ weakness }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="feedback-card">
+                        <h5 class="mb-3"><i class="bi bi-lightbulb text-warning me-2"></i>Tips for Next Time</h5>
+                        <ol class="mb-0">
+                            {% for tip in feedback.improvement_tips.split(' | ') if tip %}
+                            <li class="mb-2">{{ tip }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="{{ url_for('interviews.create') }}" class="btn btn-primary btn-lg px-5">
+                    <i class="bi bi-plus-circle me-2"></i>Practice Again
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

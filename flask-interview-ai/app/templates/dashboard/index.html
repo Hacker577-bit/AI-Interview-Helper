@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Interview Prep{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #f8f9fa; }
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white rounded shadow-sm mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-robot text-primary"></i> AI Interview Prep
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-item nav-link text-muted">{{ current_user.name or current_user.email }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-1">Welcome back{% if current_user.name %}, {{ current_user.name }}{% endif %}!</h1>
+            <p class="text-muted">Ready to practice your interview skills?</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
+                        <i class="bi bi-chat-square-text"></i>
+                    </div>
+                    <div>
+                        <h3 class="h5 mb-0">{{ total_interviews }}</h3>
+                        <p class="text-muted mb-0">Interviews Completed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success me-3">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <div>
+                        <h3 class="h5 mb-0">{{ average_score }}</h3>
+                        <p class="text-muted mb-0">Average Score</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3">
+                        <i class="bi bi-lightning"></i>
+                    </div>
+                    <div>
+                        <h3 class="h5 mb-0">5</h3>
+                        <p class="text-muted mb-0">Day Streak</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info me-3">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <div>
+                        <h3 class="h5 mb-0">3</h3>
+                        <p class="text-muted mb-0">Badges Earned</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Recent Interviews</h5>
+                        <a href="{{ url_for('dashboard.history') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    {% if sessions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Difficulty</th>
+                                        <th>Date</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for session in sessions %}
+                                    <tr>
+                                        <td><span class="badge bg-light text-dark">{{ session.interview_type }}</span></td>
+                                        <td>{{ session.difficulty }}</td>
+                                        <td>{{ session.created_at.strftime('%b %d, %Y') }}</td>
+                                        <td>
+                                            {% if session.overall_score %}
+                                                <span class="badge {% if session.overall_score >= 8 %}bg-success{% elif session.overall_score >= 6 %}bg-warning{% else %}bg-danger{% endif %}">
+                                                    {{ "%.1f"|format(session.overall_score) }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if session.status == 'COMPLETED' %}bg-success{% else %}bg-primary{% endif %}">
+                                                {{ session.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No interviews yet. Start your first one!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">Quick Actions</h5>
+                    <a href="{{ url_for('interviews.create') }}" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-plus-circle me-2"></i>Start New Interview
+                    </a>
+                    {% if in_progress %}
+                    <a href="{{ url_for('interviews.start', session_id=in_progress.id) }}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-play-circle me-2"></i>Continue Interview
+                    </a>
+                    {% endif %}
+                    
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3">Tips</h6>
+                    <ul class="list-unstyled text-muted small">
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Practice daily for best results</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Review feedback after each interview</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Use STAR method for behavioral questions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

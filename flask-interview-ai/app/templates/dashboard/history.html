@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Interview History - AI Interview Prep{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white rounded shadow-sm mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
+                <i class="bi bi-robot text-primary"></i> AI Interview Prep
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <h2 class="mb-4">Interview History</h2>
+
+    {% if sessions %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Difficulty</th>
+                                <th>Date</th>
+                                <th>Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                            <tr>
+                                <td>#{{ session.id }}</td>
+                                <td><span class="badge bg-light text-dark">{{ session.interview_type }}</span></td>
+                                <td>{{ session.difficulty }}</td>
+                                <td>{{ session.completed_at.strftime('%b %d, %Y') if session.completed_at else session.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>
+                                    {% if session.overall_score %}
+                                        <span class="badge {% if session.overall_score >= 8 %}bg-success{% elif session.overall_score >= 6 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ "%.1f"|format(session.overall_score) }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('interviews.feedback', session_id=session.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>View Feedback
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-clock-history text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3 text-muted">No interviews yet</h4>
+            <p class="text-muted">Start your first interview to see history here</p>
+            <a href="{{ url_for('interviews.create') }}" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle me-2"></i>Start Interview
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

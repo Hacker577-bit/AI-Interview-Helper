@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Complete - AI Interview Prep{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #f8f9fa; }
+    .complete-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 3rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="complete-card text-center">
+                <div class="mb-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                </div>
+                <h2 class="mb-3">Interview Complete!</h2>
+                <p class="text-muted mb-4">Great job finishing your {{ session.interview_type }} interview.</p>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
+                            <h4 class="mb-1">{{ session.questions.count() }}</h4>
+                            <small class="text-muted">Questions Answered</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
+                            <h4 class="mb-1">{{ session.difficulty }}</h4>
+                            <small class="text-muted">Difficulty Level</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
+                            <h4 class="mb-1">{{ "%.0f"|format((session.completed_at - session.started_at).total_seconds() / 60) }} min</h4>
+                            <small class="text-muted">Total Time</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-robot me-2"></i>
+                    <strong>AI Feedback Ready!</strong> Our AI has analyzed your responses and is ready to provide detailed feedback.
+                </div>
+
+                <form method="POST" action="{{ url_for('interviews.generate_session_feedback', session_id=session.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-stars me-2"></i>Generate AI Feedback
+                    </button>
+                </form>
+
+                <div class="mt-4">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
