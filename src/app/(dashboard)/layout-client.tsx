@@ -17,15 +17,15 @@ const pathTitles: Record<string, string> = {
 }
 
 interface DashboardLayoutClientProps {
-  user: {
+  user?: {
     name: string | null
     email: string
     avatarUrl: string | null
-  }
+  } | null
   children: React.ReactNode
 }
 
-export function DashboardLayoutClient({ children }: DashboardLayoutClientProps) {
+export function DashboardLayoutClient({ user, children }: DashboardLayoutClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
 
@@ -36,14 +36,18 @@ export function DashboardLayoutClient({ children }: DashboardLayoutClientProps) 
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        user={user}
       />
       <div className="flex flex-1 flex-col overflow-hidden lg:pl-64">
         <Header
           title={title}
           onMenuClick={() => setSidebarOpen(true)}
+          user={user}
         />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-          {children}
+        <main className="flex-1 overflow-y-auto bg-muted/20 p-4 md:p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            {children}
+          </div>
         </main>
       </div>
     </div>

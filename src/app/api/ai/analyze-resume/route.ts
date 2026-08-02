@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
-import { parseResume } from "@/lib/ai/resume-parser"
-import { analyzeATS } from "@/lib/ai/ats-analyzer"
+import { parseResume, parseResumeWithAI } from "@/lib/ai/resume-parser"
+import { analyzeATS, analyzeATSWithAI } from "@/lib/ai/ats-analyzer"
 import { resumeTextSchema } from "@/lib/validators"
 import { rateLimiters, getRateLimitHeaders } from "@/lib/rate-limit"
 import { handleApiError } from "@/lib/api-helpers"
@@ -35,14 +35,16 @@ export async function POST(request: NextRequest) {
 
     const { resumeText } = parsed.data
 
-    const parsed2 = parseResume(resumeText)
-    const atsAnalysis = analyzeATS(resumeText, parsed2.skills)
+    const parsedResume = await parseResumeWithAI(resumeText)
+    const skills = parsedResume.skills.length > 0 ? parsedResume.skills : parseResume(resumeText).skills
+    const atsAnalysis = await analyzeATSWithAI(resumeText, skills, body.jobDescription)
 
     return NextResponse.json(
       {
-        skills: parsed2.skills,
-        experiences: parsed2.experiences,
-        educations: parsed2.educations,
+        skills: parsedResume.skills,
+        experiences: parsedResume.experiences,
+        educations: parsedResume.educations,
+        summary: parsedResume.summary,
         atsAnalysis,
       },
       { headers: getRateLimitHeaders(rateResult) }

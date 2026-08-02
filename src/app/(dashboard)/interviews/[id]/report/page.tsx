@@ -73,7 +73,7 @@ export default function ReportPage() {
           <h3 className="mt-4 text-lg font-semibold">Could not load report</h3>
           <p className="mt-2 text-sm text-muted-foreground">{error || "No feedback data available"}</p>
           <button
-            onClick={() => router.push("/interviews")}
+            onClick={() => router.push("/dashboard/interviews")}
             className="mt-6 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Back to Interviews
@@ -89,15 +89,15 @@ export default function ReportPage() {
 
       <div className="flex items-center justify-center gap-3">
         <button
-          onClick={() => router.push("/interviews")}
-          className="inline-flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium hover:bg-accent transition-colors"
+          onClick={() => router.push("/dashboard")}
+          className="inline-flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
         >
           <Home className="h-4 w-4" />
           Back to Dashboard
         </button>
         <button
-          onClick={() => router.push("/interviews")}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow"
+          onClick={() => router.push("/dashboard/interviews")}
+          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
         >
           <RotateCcw className="h-4 w-4" />
           Practice Again

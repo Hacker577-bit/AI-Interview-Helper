@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-import { generateFeedback } from "@/lib/ai/interview-engine"
+import { generateFeedback, generateFeedbackWithAI } from "@/lib/ai/interview-engine"
 import { rateLimiters, getRateLimitHeaders } from "@/lib/rate-limit"
 import { handleApiError } from "@/lib/api-helpers"
 
@@ -143,7 +143,14 @@ export async function POST(
       answer: q.responses[q.responses.length - 1]?.responseText || "",
     }))
 
-    const feedback = generateFeedback(qaPairs, session.interviewType)
+    const feedback = await generateFeedbackWithAI(
+      qaPairs,
+      session.interviewType,
+      {
+        difficulty: session.difficulty,
+        jdText: session.jdText || undefined,
+      }
+    ).catch(() => generateFeedback(qaPairs, session.interviewType))
 
     const report = await prisma.feedbackReport.create({
       data: {

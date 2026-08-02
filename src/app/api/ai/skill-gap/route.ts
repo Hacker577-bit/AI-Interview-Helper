@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
-import { analyzeSkillGap } from "@/lib/ai/skill-gap-engine"
+import { analyzeSkillGap, analyzeSkillGapWithAI } from "@/lib/ai/skill-gap-engine"
 import { skillGapSchema } from "@/lib/validators"
 import { rateLimiters, getRateLimitHeaders } from "@/lib/rate-limit"
 import { handleApiError } from "@/lib/api-helpers"
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       yearsExp: s.yearsExp || null,
     }))
 
-    const analysis = analyzeSkillGap(validatedSkills, targetRole)
+    const analysis = await analyzeSkillGapWithAI(validatedSkills, targetRole)
 
     return NextResponse.json(analysis, { headers: getRateLimitHeaders(rateResult) })
   } catch (error) {

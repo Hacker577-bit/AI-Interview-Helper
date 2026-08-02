@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-import { generateFollowUp } from "@/lib/ai/interview-engine"
+import { generateFollowUp, generateFollowUpWithAI } from "@/lib/ai/interview-engine"
 import { answerSubmitSchema } from "@/lib/validators"
 import { rateLimiters, getRateLimitHeaders } from "@/lib/rate-limit"
 import { handleApiError } from "@/lib/api-helpers"
@@ -142,7 +142,8 @@ export async function POST(
       data: { isAnswered: true },
     })
 
-    const followUpText = generateFollowUp(question.questionText, answer)
+    const followUpText = await generateFollowUpWithAI(question.questionText, answer)
+      .catch(() => generateFollowUp(question.questionText, answer))
 
     if (followUpText) {
       const maxSeq = await prisma.interviewQuestion.findFirst({

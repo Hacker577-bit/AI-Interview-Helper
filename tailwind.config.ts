@@ -9,6 +9,14 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      },
+      boxShadow: {
+        card: "0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)",
+        "card-hover": "0 10px 30px -5px rgb(0 0 0 / 0.12), 0 4px 10px -4px rgb(0 0 0 / 0.08)",
+        glow: "0 0 40px -10px hsl(var(--primary) / 0.5)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

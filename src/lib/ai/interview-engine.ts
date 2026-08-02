@@ -378,9 +378,16 @@ export function generateFeedback(
   return generateFeedbackRuleBased(questions, interviewType)
 }
 
+export interface FeedbackContext {
+  skills?: string[]
+  jdText?: string
+  difficulty?: string
+}
+
 export async function generateFeedbackWithAI(
   questions: { question: string; answer: string }[],
-  interviewType: string
+  interviewType: string,
+  context?: FeedbackContext
 ): Promise<FeedbackReport> {
   if (!isAIEnabled()) {
     console.log("[interview-engine] AI disabled, falling back to rule-based feedback")
@@ -392,7 +399,16 @@ export async function generateFeedbackWithAI(
       .map((qa, i) => `Q${i + 1}: ${qa.question}\nA${i + 1}: ${qa.answer}`)
       .join("\n\n")
 
-    const userMessage = `Interview type: ${interviewType}\n\n${qaText}`
+    const contextParts: string[] = [`Interview type: ${interviewType}`]
+    if (context?.difficulty) contextParts.push(`Difficulty: ${context.difficulty}`)
+    if (context?.skills && context.skills.length > 0) {
+      contextParts.push(`Candidate skills: ${context.skills.join(", ")}`)
+    }
+    if (context?.jdText) {
+      contextParts.push(`Target job description: ${context.jdText.slice(0, 3000)}`)
+    }
+
+    const userMessage = `${contextParts.join("\n")}\n\n${qaText}`
 
     const response = await chatCompletion(PROMPTS.generateFeedback, userMessage, {
       temperature: 0.5,

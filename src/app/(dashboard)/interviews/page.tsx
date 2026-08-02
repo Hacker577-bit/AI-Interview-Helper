@@ -7,56 +7,97 @@ import {
   Clock,
   ChevronRight,
   Loader2,
+  Sparkles,
+  MessageSquare,
+  Brain,
+  ListChecks,
+  Mic,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatRelativeTime } from "@/lib/utils"
 import { FormSkeleton } from "@/components/ui/skeleton"
 import { Alert } from "@/components/ui/alert"
 
-const inProgressSessions = [
-  {
-    id: "1",
-    type: "Behavioral",
-    difficulty: "Mid",
-    questionCount: 10,
-    answered: 3,
-    startedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: "2",
-    type: "Technical",
-    difficulty: "Senior",
-    questionCount: 15,
-    answered: 7,
-    startedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-]
+interface InProgressSession {
+  id: string
+  interviewType: string
+  difficulty: string
+  questionCount: number
+  status: string
+  answeredCount: number
+  startedAt: string | null
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  BEHAVIORAL: "Behavioral",
+  TECHNICAL: "Technical",
+  CASE_STUDY: "Case Study",
+  MIXED: "Mixed",
+}
+
+const DIFFICULTY_LABELS: Record<string, string> = {
+  ENTRY: "Entry",
+  MID: "Mid",
+  SENIOR: "Senior",
+  STAFF: "Staff",
+}
 
 export default function InterviewsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [inProgressSessions, setInProgressSessions] = useState<InProgressSession[]>([])
   const [formData, setFormData] = useState({
-    interviewType: "BEHAVIORAL",
+    interviewType: "MIXED",
     difficulty: "MID",
     questionCount: 10,
-    mode: "TEXT" as const,
+    mode: "TEXT" as string,
     jobDescription: "",
   })
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(timer)
+    const controller = new AbortController()
+    Promise.all([
+      new Promise((r) => setTimeout(r, 300)),
+      fetch("/api/interview/list", { signal: controller.signal })
+        .then((res) => (res.ok ? res.json() : { sessions: [] }))
+        .then((data) => {
+          const active = (data.sessions || []).filter(
+            (s: InProgressSession) => s.status === "IN_PROGRESS"
+          )
+          setInProgressSessions(active)
+        })
+        .catch(() => {}),
+    ]).finally(() => setLoading(false))
+    return () => controller.abort()
   }, [])
 
-  const handleStart = () => {
+  const handleStart = async () => {
     setStarting(true)
     setError(null)
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/interview/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interviewType: formData.interviewType,
+          difficulty: formData.difficulty,
+          questionCount: formData.questionCount,
+          mode: formData.mode,
+          jdText: formData.jobDescription || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to start interview")
+      }
+      router.push(`/dashboard/interviews/${data.session.id}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start interview")
+    } finally {
       setStarting(false)
-      router.push("/interviews/new")
-    }, 600)
+    }
   }
 
   if (loading) {
@@ -73,13 +114,30 @@ export default function InterviewsPage() {
     )
   }
 
+  const modeOptions = [
+    { value: "TEXT", label: "Text", icon: MessageSquare, enabled: true },
+    { value: "VOICE", label: "Voice", icon: Mic, enabled: true },
+    { value: "VIDEO", label: "Video", icon: Brain, enabled: false },
+  ]
+
   return (
     <div className="mx-auto max-w-2xl space-y-8 animate-in fade-in duration-300">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">New Interview</h2>
-        <p className="text-muted-foreground">
-          Configure your interview session and start practicing.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <Sparkles className="h-5 w-5 text-primary" />
+            New Interview
+          </h2>
+          <p className="text-muted-foreground">
+            Configure your interview session and start practicing with AI.
+          </p>
+        </div>
+        {inProgressSessions.length > 0 && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            <Clock className="h-3.5 w-3.5" />
+            {inProgressSessions.length} in progress
+          </span>
+        )}
       </div>
 
       {error && (
@@ -88,8 +146,14 @@ export default function InterviewsPage() {
         </Alert>
       )}
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <div className="space-y-5">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-card">
+        <div className="border-b bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+          <h3 className="flex items-center gap-2 font-semibold">
+            <ListChecks className="h-4 w-4 text-primary" />
+            Interview Setup
+          </h3>
+        </div>
+        <div className="space-y-5 p-6">
           <div>
             <label className="mb-1.5 block text-sm font-medium">
               Interview Type
@@ -101,10 +165,9 @@ export default function InterviewsPage() {
               }
               className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <option value="BEHAVIORAL">Behavioral</option>
-              <option value="TECHNICAL">Technical</option>
-              <option value="CASE_STUDY">Case Study</option>
-              <option value="MIXED">Mixed</option>
+              {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
           </div>
 
@@ -119,10 +182,9 @@ export default function InterviewsPage() {
               }
               className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <option value="ENTRY">Entry</option>
-              <option value="MID">Mid</option>
-              <option value="SENIOR">Senior</option>
-              <option value="STAFF">Staff</option>
+              {Object.entries(DIFFICULTY_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
           </div>
 
@@ -136,9 +198,9 @@ export default function InterviewsPage() {
                   key={count}
                   onClick={() => setFormData({ ...formData, questionCount: count })}
                   className={cn(
-                    "rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors",
+                    "rounded-lg border px-4 py-2.5 text-sm font-medium transition-all",
                     formData.questionCount === count
-                      ? "border-primary bg-primary/10 text-primary"
+                      ? "border-primary bg-primary/10 text-primary shadow-sm"
                       : "hover:bg-accent"
                   )}
                 >
@@ -151,32 +213,28 @@ export default function InterviewsPage() {
           <div>
             <label className="mb-1.5 block text-sm font-medium">Mode</label>
             <div className="grid grid-cols-3 gap-2">
-              <button
-                className={cn(
-                  "rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors",
-                  "border-primary bg-primary/10 text-primary"
-                )}
-              >
-                Text
-              </button>
-              <button
-                disabled
-                className="relative rounded-lg border px-4 py-2.5 text-sm font-medium text-muted-foreground opacity-60"
-              >
-                Voice
-                <span className="absolute -right-2 -top-2 inline-flex items-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
-                  Soon
-                </span>
-              </button>
-              <button
-                disabled
-                className="relative rounded-lg border px-4 py-2.5 text-sm font-medium text-muted-foreground opacity-60"
-              >
-                Video
-                <span className="absolute -right-2 -top-2 inline-flex items-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
-                  Soon
-                </span>
-              </button>
+              {modeOptions.map((mode) => (
+                <button
+                  key={mode.value}
+                  disabled={!mode.enabled}
+                  onClick={() => setFormData({ ...formData, mode: mode.value })}
+                  className={cn(
+                    "relative flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all",
+                    formData.mode === mode.value
+                      ? "border-primary bg-primary/10 text-primary shadow-sm"
+                      : "text-muted-foreground hover:bg-accent",
+                    !mode.enabled && "cursor-not-allowed opacity-50"
+                  )}
+                >
+                  <mode.icon className="h-4 w-4" />
+                  {mode.label}
+                  {!mode.enabled && (
+                    <span className="absolute -right-2 -top-2 inline-flex items-center rounded-full bg-gradient-to-r from-primary to-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                      Soon
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -199,16 +257,16 @@ export default function InterviewsPage() {
           <button
             onClick={handleStart}
             disabled={starting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90 disabled:opacity-60"
+            className="group flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 disabled:opacity-60"
           >
             {starting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Starting...
+                Preparing your interview...
               </>
             ) : (
               <>
-                <Play className="h-4 w-4" />
+                <Play className="h-4 w-4 transition-transform group-hover:scale-110" />
                 Start Interview
               </>
             )}
@@ -222,27 +280,34 @@ export default function InterviewsPage() {
             Or continue a previous interview
           </h3>
           <div className="space-y-2">
-            {inProgressSessions.map((session) => (
-              <button
-                key={session.id}
-                className="flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors hover:bg-accent"
-              >
-                <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {session.type} ({session.difficulty})
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {session.answered}/{session.questionCount} questions answered
-                      {" · "}
-                      {formatRelativeTime(session.startedAt)}
-                    </p>
+            {inProgressSessions.map((session) => {
+              const answered = session.answeredCount || 0
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => router.push(`/dashboard/interviews/${session.id}`)}
+                  className="group flex w-full items-center justify-between rounded-lg border bg-card px-4 py-3 text-left transition-all hover:border-primary/40 hover:shadow-card-hover"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110">
+                      <Clock className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        {TYPE_LABELS[session.interviewType] || session.interviewType}{" "}
+                        ({DIFFICULTY_LABELS[session.difficulty] || session.difficulty})
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {answered}/{session.questionCount} questions answered
+                        {" · "}
+                        {session.startedAt ? formatRelativeTime(session.startedAt) : "in progress"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-            ))}
+                  <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </button>
+              )
+            })}
           </div>
         </div>
       )}

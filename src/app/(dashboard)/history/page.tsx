@@ -1,56 +1,85 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Eye, ChevronDown, ChevronUp, Play } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Eye, ChevronDown, ChevronUp, Play, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/utils"
 import { TableSkeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Alert } from "@/components/ui/alert"
 
-type FilterType = "All" | "Behavioral" | "Technical" | "Case Study" | "Mixed"
+type FilterType = "All" | "BEHAVIORAL" | "TECHNICAL" | "CASE_STUDY" | "MIXED"
 
-const filterOptions: FilterType[] = ["All", "Behavioral", "Technical", "Case Study", "Mixed"]
+const TYPE_LABELS: Record<string, string> = {
+  BEHAVIORAL: "Behavioral",
+  TECHNICAL: "Technical",
+  CASE_STUDY: "Case Study",
+  MIXED: "Mixed",
+}
 
-const mockInterviews = [
-  { id: "1", date: "2026-07-27", type: "Behavioral", score: 88, questions: 8, duration: "25m" },
-  { id: "2", date: "2026-07-26", type: "Technical", score: 82, questions: 12, duration: "45m" },
-  { id: "3", date: "2026-07-25", type: "Case Study", score: 55, questions: 5, duration: "30m" },
-  { id: "4", date: "2026-07-24", type: "Mixed", score: 78, questions: 15, duration: "35m" },
-  { id: "5", date: "2026-07-20", type: "Behavioral", score: 72, questions: 10, duration: "22m" },
-  { id: "6", date: "2026-07-18", type: "Technical", score: 91, questions: 10, duration: "40m" },
-  { id: "7", date: "2026-07-15", type: "Technical", score: 67, questions: 15, duration: "38m" },
-  { id: "8", date: "2026-07-12", type: "Mixed", score: 84, questions: 8, duration: "28m" },
+const filterOptions: { value: FilterType; label: string }[] = [
+  { value: "All", label: "All" },
+  { value: "BEHAVIORAL", label: "Behavioral" },
+  { value: "TECHNICAL", label: "Technical" },
+  { value: "CASE_STUDY", label: "Case Study" },
+  { value: "MIXED", label: "Mixed" },
 ]
 
+interface Session {
+  id: string
+  interviewType: string
+  difficulty: string
+  mode: string
+  status: string
+  questionCount: number
+  answeredCount: number
+  overallScore: number | null
+  startedAt: string | null
+  endedAt: string | null
+  createdAt: string
+}
+
 function getScoreColor(score: number) {
-  if (score >= 80) return "text-green-600 dark:text-green-400"
-  if (score >= 60) return "text-yellow-600 dark:text-yellow-400"
+  if (score >= 8) return "text-green-600 dark:text-green-400"
+  if (score >= 6) return "text-yellow-600 dark:text-yellow-400"
   return "text-red-600 dark:text-red-400"
 }
 
 function getScoreBg(score: number) {
-  if (score >= 80) return "bg-green-100 dark:bg-green-900/30"
-  if (score >= 60) return "bg-yellow-100 dark:bg-yellow-900/30"
+  if (score >= 8) return "bg-green-100 dark:bg-green-900/30"
+  if (score >= 6) return "bg-yellow-100 dark:bg-yellow-900/30"
   return "bg-red-100 dark:bg-red-900/30"
 }
 
 export default function HistoryPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<FilterType>("All")
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [sessions, setSessions] = useState<Session[]>([])
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600)
-    return () => clearTimeout(timer)
+    const controller = new AbortController()
+    Promise.all([
+      new Promise((r) => setTimeout(r, 300)),
+      fetch("/api/interview/list", { signal: controller.signal })
+        .then((res) => (res.ok ? res.json() : { sessions: [] }))
+        .then((data) => {
+          const completed = (data.sessions || []).filter(
+            (s: Session) => s.status === "COMPLETED"
+          )
+          setSessions(completed)
+        })
+        .catch(() => {}),
+    ]).finally(() => setLoading(false))
+    return () => controller.abort()
   }, [])
 
-  const filteredInterviews =
+  const filteredSessions =
     activeFilter === "All"
-      ? mockInterviews
-      : mockInterviews.filter((i) => i.type === activeFilter)
+      ? sessions
+      : sessions.filter((s) => s.interviewType === activeFilter)
 
   if (loading) {
     return (
@@ -61,7 +90,7 @@ export default function HistoryPage() {
         </div>
         <div className="flex gap-2">
           {filterOptions.map((f) => (
-            <div key={f} className="h-9 w-20 animate-pulse rounded-lg bg-muted" />
+            <div key={f.value} className="h-9 w-20 animate-pulse rounded-lg bg-muted" />
           ))}
         </div>
         <div className="rounded-xl border p-6">
@@ -81,21 +110,21 @@ export default function HistoryPage() {
     )
   }
 
-  if (mockInterviews.length === 0) {
+  if (sessions.length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
         <EmptyState
           icon={Play}
-          title="No interviews yet"
+          title="No completed interviews yet"
           description="Start your first interview to begin tracking your progress."
           action={
-            <Link
-              href="/interviews"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90"
+            <button
+              onClick={() => router.push("/dashboard/interviews")}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
             >
               <Play className="h-4 w-4" />
               Start Your First Interview
-            </Link>
+            </button>
           }
         />
       </div>
@@ -114,112 +143,86 @@ export default function HistoryPage() {
       <div className="flex gap-2 overflow-x-auto pb-2">
         {filterOptions.map((filter) => (
           <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
+            key={filter.value}
+            onClick={() => setActiveFilter(filter.value)}
             className={cn(
-              "whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-              activeFilter === filter
-                ? "bg-primary text-primary-foreground"
+              "whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all",
+              activeFilter === filter.value
+                ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/25"
                 : "bg-muted text-muted-foreground hover:bg-accent"
             )}
           >
-            {filter}
+            {filter.label}
           </button>
         ))}
       </div>
 
-      {filteredInterviews.length === 0 ? (
+      {filteredSessions.length === 0 ? (
         <EmptyState
           title="No results"
           description={`No interviews found for "${activeFilter}". Try a different filter.`}
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border shadow-sm">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Questions</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Duration</th>
-                <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInterviews.map((interview) => (
-                <tr key={interview.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                  <td className="px-4 py-3 text-sm">{formatDate(interview.date)}</td>
-                  <td className="px-4 py-3 text-sm">{interview.type}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
-                        getScoreBg(interview.score),
-                        getScoreColor(interview.score)
-                      )}
-                    >
-                      {interview.score}%
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm">{interview.questions}</td>
-                  <td className="px-4 py-3 text-sm">{interview.duration}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() =>
-                        setExpandedId(expandedId === interview.id ? null : interview.id)
-                      }
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                      {expandedId === interview.id ? (
-                        <ChevronUp className="h-3 w-3" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3" />
-                      )}
-                    </button>
-                  </td>
+        <div className="overflow-hidden rounded-xl border bg-card shadow-card">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Difficulty</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Answered</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {expandedId && (
-        <div className="rounded-xl border bg-card p-6 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
-          <h4 className="mb-4 text-lg font-semibold">Session Summary</h4>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Overall Score:</span>{" "}
-                <span className="font-semibold">
-                  {mockInterviews.find((i) => i.id === expandedId)?.score}%
-                </span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Duration:</span>{" "}
-                <span className="font-semibold">
-                  {mockInterviews.find((i) => i.id === expandedId)?.duration}
-                </span>
-              </div>
-            </div>
-            <div>
-              <h5 className="mb-1 text-sm font-medium">Strengths</h5>
-              <ul className="list-inside list-disc space-y-0.5 text-sm text-muted-foreground">
-                <li>Clear and structured responses</li>
-                <li>Good use of examples</li>
-                <li>Strong closing statements</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="mb-1 text-sm font-medium">Areas to Improve</h5>
-              <ul className="list-inside list-disc space-y-0.5 text-sm text-muted-foreground">
-                <li>Reduce filler words</li>
-                <li>More concise answers for technical questions</li>
-              </ul>
-            </div>
+              </thead>
+              <tbody>
+                {filteredSessions.map((session) => {
+                  const score = session.overallScore
+                  return (
+                    <tr key={session.id} className="border-b last:border-0 transition-colors hover:bg-muted/50">
+                      <td className="px-4 py-3 text-sm">
+                        {session.startedAt ? formatDate(session.startedAt) : formatDate(session.createdAt)}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        {TYPE_LABELS[session.interviewType] || session.interviewType}
+                      </td>
+                      <td className="px-4 py-3 text-sm capitalize text-muted-foreground">
+                        {session.difficulty.toLowerCase()}
+                      </td>
+                      <td className="px-4 py-3">
+                        {score !== null ? (
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                              getScoreBg(score),
+                              getScoreColor(score)
+                            )}
+                          >
+                            {score.toFixed(1)}/10
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No score</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                        {session.answeredCount}/{session.questionCount}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => router.push(`/dashboard/interviews/${session.id}/report`)}
+                          className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Report
+                          <ArrowRight className="h-3 w-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
   MessageSquare,
@@ -17,13 +17,18 @@ import {
   LogOut,
   Receipt,
   X,
+  Brain,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { getInitials } from "@/lib/utils"
+import { cn, getInitials } from "@/lib/utils"
 
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
+  user?: {
+    name: string | null
+    email: string
+    avatarUrl: string | null
+  } | null
 }
 
 const navItems = [
@@ -37,9 +42,24 @@ const navItems = [
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, user }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+
+  const displayName = user?.name || "User"
+  const displayEmail = user?.email || "user@example.com"
+  const initials = getInitials(displayName)
+
+  async function handleSignOut() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+    } catch {
+      // proceed with redirect anyway
+    }
+    router.push("/login")
+    router.refresh()
+  }
 
   return (
     <>
@@ -56,9 +76,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <MessageSquare className="h-4 w-4 text-primary-foreground" />
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-indigo-600 shadow-lg shadow-primary/25">
+              <Brain className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-bold tracking-tight">InterviewAI</span>
           </Link>
@@ -70,7 +90,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {navItems.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -82,13 +102,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                   isActive
-                    ? "bg-accent text-accent-foreground"
+                    ? "bg-gradient-to-r from-primary/15 to-transparent text-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <item.icon className="h-4 w-4" />
+                {isActive && (
+                  <span className="absolute left-0 h-5 w-1 rounded-r-full bg-gradient-to-b from-primary to-indigo-500" />
+                )}
+                <item.icon
+                  className={cn(
+                    "h-4 w-4 transition-transform group-hover:scale-110",
+                    isActive && "text-primary"
+                  )}
+                />
                 {item.label}
               </Link>
             )
@@ -100,12 +128,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-              U
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-indigo-600 text-xs font-bold text-white">
+              {initials}
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium">User</p>
-              <p className="text-xs text-muted-foreground">user@example.com</p>
+              <p className="truncate text-sm font-medium">{displayName}</p>
+              <p className="truncate text-xs text-muted-foreground">{displayEmail}</p>
             </div>
             <ChevronDown
               className={cn(
@@ -116,15 +144,26 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
           {userMenuOpen && (
             <div className="absolute bottom-full left-3 right-3 mb-1 rounded-lg border bg-card p-1 shadow-lg">
-              <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setUserMenuOpen(false)}
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              >
                 <User className="h-4 w-4" />
                 Profile
-              </button>
-              <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+              </Link>
+              <Link
+                href="/dashboard/billing"
+                onClick={() => setUserMenuOpen(false)}
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              >
                 <CreditCard className="h-4 w-4" />
                 Billing
-              </button>
-              <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10">
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+              >
                 <LogOut className="h-4 w-4" />
                 Sign Out
               </button>

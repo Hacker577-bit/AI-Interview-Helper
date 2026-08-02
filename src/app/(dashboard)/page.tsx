@@ -58,26 +58,30 @@ const stats = [
   },
 ]
 
-const colorVariants: Record<string, { bg: string; text: string; darkBg: string }> = {
+const colorVariants: Record<string, { bg: string; text: string; darkBg: string; gradient: string }> = {
   blue: {
     bg: "bg-blue-100",
     text: "text-blue-600",
     darkBg: "dark:bg-blue-900/30",
+    gradient: "from-blue-500 to-cyan-400",
   },
   green: {
     bg: "bg-green-100",
     text: "text-green-600",
     darkBg: "dark:bg-green-900/30",
+    gradient: "from-emerald-500 to-teal-400",
   },
   orange: {
     bg: "bg-orange-100",
     text: "text-orange-600",
     darkBg: "dark:bg-orange-900/30",
+    gradient: "from-orange-500 to-amber-400",
   },
   purple: {
     bg: "bg-purple-100",
     text: "text-purple-600",
     darkBg: "dark:bg-purple-900/30",
+    gradient: "from-purple-500 to-fuchsia-400",
   },
 }
 
@@ -200,12 +204,18 @@ export default function DashboardPage() {
           return (
             <div
               key={stat.label}
-              className="rounded-xl border bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
+              className="group relative overflow-hidden rounded-xl border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover"
             >
+              <div
+                className={cn(
+                  "pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-gradient-to-br opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-20",
+                  colors.gradient
+                )}
+              />
               <div className="flex items-center gap-4">
                 <div
                   className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-lg",
+                    "flex h-12 w-12 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110",
                     colors.bg,
                     colors.darkBg
                   )}

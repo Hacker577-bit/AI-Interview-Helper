@@ -2,6 +2,13 @@ import { ParsedSkill, ParsedExperience, ParsedEducation } from "@/types"
 import { chatCompletion, isAIEnabled } from "./client"
 import { PROMPTS } from "./prompts"
 
+export interface ParsedResumeResult {
+  skills: ParsedSkill[]
+  experiences: ParsedExperience[]
+  educations: ParsedEducation[]
+  summary: string | null
+}
+
 const TECH_SKILLS = [
   "JavaScript", "TypeScript", "Python", "Java", "C++", "Go", "Rust", "Ruby", "PHP", "Swift", "Kotlin",
   "React", "Angular", "Vue.js", "Next.js", "Node.js", "Express", "Django", "Flask", "Spring", "Rails",
@@ -107,7 +114,7 @@ export function extractEducation(text: string): ParsedEducation[] {
   return extractEducationRuleBased(text)
 }
 
-export async function parseResumeWithAI(text: string) {
+export async function parseResumeWithAI(text: string): Promise<ParsedResumeResult> {
   if (!isAIEnabled()) {
     console.log("[resume-parser] AI disabled, falling back to rule-based parsing")
     return parseResumeRuleBased(text)
@@ -160,14 +167,23 @@ export async function parseResumeWithAI(text: string) {
   }
 }
 
-function parseResumeRuleBased(text: string) {
+function extractSummaryRuleBased(text: string): string | null {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 20)
+  return lines.length > 0 ? lines.slice(0, 2).join(" ") : null
+}
+
+function parseResumeRuleBased(text: string): ParsedResumeResult {
   return {
     skills: extractSkillsRuleBased(text),
     experiences: extractExperiencesRuleBased(text),
     educations: extractEducationRuleBased(text),
+    summary: extractSummaryRuleBased(text),
   }
 }
 
-export function parseResume(text: string) {
+export function parseResume(text: string): ParsedResumeResult {
   return parseResumeRuleBased(text)
 }

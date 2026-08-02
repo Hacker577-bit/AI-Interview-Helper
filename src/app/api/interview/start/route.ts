@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
-import { generateQuestions } from "@/lib/ai/interview-engine"
+import { generateQuestions, generateQuestionsWithAI } from "@/lib/ai/interview-engine"
 
 const FREE_MONTHLY_LIMIT = 3
 
@@ -95,7 +95,17 @@ export async function POST(req: NextRequest) {
       data: { interviewUsageMonth: { increment: 1 } },
     })
 
-    const questions = generateQuestions(interviewType, difficulty, questionCount)
+    let resumeSkills: string[] | undefined
+    if (resumeId) {
+      const resume = await prisma.resume.findUnique({
+        where: { id: resumeId, userId: user.id },
+        include: { skills: true },
+      })
+      resumeSkills = resume?.skills.map((s) => s.name).filter(Boolean)
+    }
+
+    const aiQuestions = await generateQuestionsWithAI(interviewType, difficulty, questionCount, resumeSkills, jdText)
+    const questions = aiQuestions.length > 0 ? aiQuestions : generateQuestions(interviewType, difficulty, questionCount)
 
     await prisma.interviewQuestion.createMany({
       data: questions.map((q) => ({

@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, X } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Menu, X, Brain } from "lucide-react"
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -25,9 +24,9 @@ export function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
-            I
+        <Link href="/" className="group flex items-center gap-2.5 text-xl font-bold text-foreground">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-indigo-600 font-bold text-white shadow-lg shadow-primary/30 transition-transform group-hover:scale-105">
+            <Brain className="h-5 w-5" />
           </div>
           InterviewAI
         </Link>
@@ -46,14 +45,14 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
-            href="/sign-in"
+            href="/login"
             className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
           >
             Sign In
           </Link>
           <Link
-            href="/sign-up"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            href="/signup"
+            className="rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
           >
             Get Started Free
           </Link>
@@ -82,13 +81,13 @@ export function Navbar() {
             ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-4">
               <Link
-                href="/sign-in"
+                href="/login"
                 className="rounded-lg border border-border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-accent"
               >
                 Sign In
               </Link>
               <Link
-                href="/sign-up"
+                href="/signup"
                 className="rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Get Started Free

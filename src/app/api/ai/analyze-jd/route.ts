@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
-import { analyzeJobDescription } from "@/lib/ai/jd-analyzer"
+import { analyzeJobDescription, analyzeJobDescriptionWithAI } from "@/lib/ai/jd-analyzer"
 import { jdAnalysisSchema } from "@/lib/validators"
 import { rateLimiters, getRateLimitHeaders } from "@/lib/rate-limit"
 import { handleApiError } from "@/lib/api-helpers"
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       yearsExp: null as number | null,
     }))
 
-    const analysis = analyzeJobDescription(jdText, validatedSkills)
+    const analysis = await analyzeJobDescriptionWithAI(jdText, validatedSkills)
 
     return NextResponse.json(analysis, { headers: getRateLimitHeaders(rateResult) })
   } catch (error) {

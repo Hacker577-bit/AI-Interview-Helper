@@ -1,4 +1,4 @@
-import { SkillGapAnalysis, SkillGap, ParsedSkill } from "@/types"
+import { SkillGapAnalysis, SkillGap, ParsedSkill, LearningPath, LearningPathItem } from "@/types"
 import { chatCompletion, isAIEnabled } from "./client"
 import { PROMPTS } from "./prompts"
 
@@ -106,6 +106,110 @@ export function analyzeSkillGap(
   targetRole: string
 ): SkillGapAnalysis {
   return analyzeSkillGapRuleBased(userSkills, targetRole)
+}
+
+const ITEM_TYPE_FROM_ACTIVITY = (activity: string): LearningPathItem["type"] => {
+  const lower = activity.toLowerCase()
+  if (/(course|udemy|coursera|academy|certification|tutorial|lecture|book|reading|read )/.test(lower)) return "COURSE"
+  if (/(project|build|implement|develop|create|hackathon)/.test(lower)) return "PROJECT"
+  if (/(interview|quiz|practice|exercise|flashcard|mock)/.test(lower)) return "PRACTICE"
+  return "READING"
+}
+
+export function generateLearningPathRuleBased(
+  analysis: SkillGapAnalysis,
+  targetRole: string
+): LearningPath {
+  const items: LearningPathItem[] = []
+  let week = 1
+
+  for (const gap of analysis.gaps) {
+    if (week > 8) break
+    const focus = `Master ${gap.skill} (${gap.demandLevel.toLowerCase()} demand)`
+    items.push({
+      id: crypto.randomUUID(),
+      title: focus,
+      type: "COURSE",
+      resourceUrl: null,
+      estimatedHours: Math.max(4, gap.learningHours),
+      completed: false,
+      week,
+    })
+    week++
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    title: `Roadmap to ${targetRole}`,
+    goalRole: targetRole,
+    items,
+    progress: 0,
+  }
+}
+
+export async function generateLearningPathWithAI(
+  userSkills: ParsedSkill[],
+  targetRole: string,
+  analysis: SkillGapAnalysis
+): Promise<LearningPath> {
+  if (!isAIEnabled()) {
+    console.log("[learning-path] AI disabled, falling back to rule-based generation")
+    return generateLearningPathRuleBased(analysis, targetRole)
+  }
+
+  try {
+    const userMessage = `Target Role: ${targetRole}\n\nCandidate skills: ${JSON.stringify(
+      userSkills.map(s => ({ name: s.name, level: s.level, yearsExp: s.yearsExp }))
+    )}\n\nIdentified gaps: ${JSON.stringify(analysis.gaps)}`
+
+    const response = await chatCompletion(PROMPTS.generateLearningPath, userMessage, {
+      temperature: 0.6,
+      maxTokens: 3000,
+      responseFormat: "json_object",
+    })
+
+    if (!response) {
+      console.log("[learning-path] AI returned empty response, falling back to rule-based")
+      return generateLearningPathRuleBased(analysis, targetRole)
+    }
+
+    const parsed = JSON.parse(response)
+    const weeks: { week: number; focus: string; activities: string[]; estimatedHours: number }[] =
+      Array.isArray(parsed.weeks) ? parsed.weeks : []
+
+    if (weeks.length === 0) {
+      return generateLearningPathRuleBased(analysis, targetRole)
+    }
+
+    const items: LearningPathItem[] = []
+    for (const w of weeks) {
+      const activities = Array.isArray(w.activities) ? w.activities.map(String) : []
+      for (const activity of activities) {
+        items.push({
+          id: crypto.randomUUID(),
+          title: activity,
+          type: ITEM_TYPE_FROM_ACTIVITY(activity),
+          resourceUrl: null,
+          estimatedHours: typeof w.estimatedHours === "number"
+            ? Math.round(w.estimatedHours / Math.max(activities.length, 1))
+            : 5,
+          completed: false,
+          week: typeof w.week === "number" ? w.week : 1,
+        })
+      }
+    }
+
+    return {
+      id: crypto.randomUUID(),
+      title: typeof parsed.title === "string" ? parsed.title : `Roadmap to ${targetRole}`,
+      goalRole: typeof parsed.goalRole === "string" ? parsed.goalRole : targetRole,
+      items: items.length > 0 ? items : generateLearningPathRuleBased(analysis, targetRole).items,
+      progress: 0,
+    }
+  } catch (error) {
+    console.error("[learning-path] AI generation failed, falling back to rule-based:", error)
+    return generateLearningPathRuleBased(analysis, targetRole)
+  }
 }
 
 export async function analyzeSkillGapWithAI(

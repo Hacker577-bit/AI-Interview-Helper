@@ -176,38 +176,52 @@ export function Pricing() {
               <div
                 key={plan.name}
                 className={cn(
-                  "relative flex flex-col rounded-2xl border bg-card p-8",
+                  "relative flex flex-col rounded-2xl border bg-card p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover",
                   plan.highlighted
-                    ? "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary"
-                    : "border-border"
+                    ? "border-primary shadow-xl shadow-primary/15 ring-1 ring-primary"
+                    : "border-border shadow-card"
                 )}
               >
                 {plan.highlighted && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
-                    Most Popular
-                  </span>
+                  <>
+                    <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-indigo-500/20" />
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-indigo-600 px-4 py-1 text-xs font-semibold text-white shadow-lg shadow-primary/30">
+                      Most Popular
+                    </span>
+                  </>
                 )}
 
-                <div className="mb-6">
+                <div className="relative mb-6">
                   <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
                 </div>
 
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-foreground">{price}</span>
+                <div className="relative mb-6">
+                  <span className={cn("text-4xl font-bold", plan.highlighted && "text-gradient")}>
+                    {price}
+                  </span>
                   <span className="text-sm text-muted-foreground">{plan.period}</span>
                   {plan.yearlyNote && yearly && (
                     <p className="mt-1 text-xs text-muted-foreground">{plan.yearlyNote}</p>
                   )}
                 </div>
 
-                <ul className="mb-8 flex-1 space-y-3">
+                <ul className="relative mb-8 flex-1 space-y-3">
                   {(yearly && !isFreePlan && !isEnterprisePlan
                     ? YEARLY_FEATURES
                     : plan.features
                   ).map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
-                      <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
+                          plan.highlighted
+                            ? "bg-gradient-to-br from-primary to-indigo-600 text-white"
+                            : "bg-primary/10"
+                        )}
+                      >
+                        <Check className="h-3.5 w-3.5 text-primary" />
+                      </span>
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -216,7 +230,7 @@ export function Pricing() {
                 {isCurrentFreePlan ? (
                   <span
                     className={cn(
-                      "rounded-lg px-6 py-3 text-center text-sm font-semibold",
+                      "relative rounded-lg px-6 py-3 text-center text-sm font-semibold",
                       "border border-border bg-muted text-muted-foreground"
                     )}
                   >
@@ -226,7 +240,7 @@ export function Pricing() {
                   <a
                     href={`mailto:${"sales@interviewai.com"}`}
                     className={cn(
-                      "rounded-lg px-6 py-3 text-center text-sm font-semibold transition-all",
+                      "relative rounded-lg px-6 py-3 text-center text-sm font-semibold transition-all",
                       "border border-border text-foreground hover:bg-accent"
                     )}
                   >
@@ -237,9 +251,9 @@ export function Pricing() {
                     onClick={() => handleCheckout(planId)}
                     disabled={checkoutLoading !== null}
                     className={cn(
-                      "rounded-lg px-6 py-3 text-center text-sm font-semibold transition-all disabled:opacity-50",
+                      "relative rounded-lg px-6 py-3 text-center text-sm font-semibold transition-all disabled:opacity-50",
                       plan.highlighted
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
                         : "border border-border text-foreground hover:bg-accent"
                     )}
                   >
@@ -253,7 +267,7 @@ export function Pricing() {
                   <a
                     href="/signup"
                     className={cn(
-                      "rounded-lg px-6 py-3 text-center text-sm font-semibold transition-all",
+                      "relative rounded-lg px-6 py-3 text-center text-sm font-semibold transition-all",
                       "border border-border text-foreground hover:bg-accent"
                     )}
                   >
