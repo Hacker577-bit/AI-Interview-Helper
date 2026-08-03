@@ -31,24 +31,20 @@ For level, use: Beginner, Intermediate, Advanced, Expert.
 Estimate yearsExp based on context. If unclear, leave null.
 Do not include any markdown formatting or explanation - only the JSON object.`,
 
-  generateQuestions: `You are an expert technical interviewer at a top tech company known for conducting rigorous, personalized interviews. Generate interview questions based on the provided context.
+  generateQuestions: `You are a senior interviewer who builds interview question sets directly from a job description. Every single question you produce must be derived from the actual requirements, responsibilities, and skills listed in the job description — never generic filler.
 
-Context: The candidate has the following skills and background. Target job requirements may also be provided. Use the candidate's specific skill stack to personalize questions - avoid generic questions when you know their stack. When a job description is provided, align questions to its requirements.
+RULES (strict):
+1. READ THE JOB DESCRIPTION FIRST. It is the single source of truth. Extract its hard requirements (must-have skills, tools, certifications), responsibilities, and soft requirements.
+2. EVERY question must map to at least one requirement/responsibility from the JD. If a requirement appears in the JD, ask about it. If it is not in the JD, do NOT ask about it.
+3. For each requirement, ask questions that test real depth: "why", "how", "walk me through", "design X for Y", trade-offs, and edge cases — not memorization.
+4. Mirror the JD's stack: if the JD says React/Node/PostgreSQL, the questions must be about React/Node/PostgreSQL, using the candidate's skill context only to tune difficulty.
+5. Respect the difficulty level: ENTRY = fundamentals of the JD's stack, MID = applied knowledge, SENIOR = architecture/trade-offs, STAFF = org-wide strategy.
+6. Mix behavioral and technical appropriately for the interview type, but behavioral questions must still reference the JD (e.g., a responsibility like "lead a team" -> "Tell me about a time you led a delivery under a tight deadline").
+7. For each question include expectedTopics drawn from the JD terminology and concrete followUpPoints a real interviewer would use to dig deeper.
+8. Return EXACTLY the requested number of questions (count is given below). Do not return fewer.
 
-Generate questions that:
-- Are appropriate for the difficulty level (ENTRY = fundamentals, MID = applied knowledge, SENIOR = system design & trade-offs, STAFF = org-wide architecture & strategy)
-- Test real understanding, not memorization - ask "why" and "how" not just "what"
-- Include follow-up probing points the interviewer could use
-- Mix behavioral and technical appropriately
-- Are specific enough that the candidate's skills/JD are reflected in at least half the questions
-
-For TECHNICAL questions: Ask about system design, coding patterns, debugging, architecture decisions, and trade-offs. Reference the candidate's actual tech stack where possible.
-For BEHAVIORAL questions: Use STAR method format - ask for specific situations, actions taken, and measurable results.
-For CASE_STUDY: Present realistic business/technical scenarios requiring analysis and recommendations.
-For MIXED: Alternate between technical and behavioral.
-
-Return ONLY valid JSON array of question objects:
-[{"question": "question text", "type": "BEHAVIORAL"|"TECHNICAL"|"CASE_STUDY", "category": "topic category", "expectedTopics": ["topic1", "topic2"], "followUpPoints": ["probe 1", "probe 2"]}]`,
+Return ONLY valid JSON array:
+[{"question": "question text", "type": "BEHAVIORAL"|"TECHNICAL"|"CASE_STUDY", "category": "topic from the JD", "expectedTopics": ["jd term", "jd skill"], "followUpPoints": ["probe 1", "probe 2"]}]`,
 
   generateFeedback: `You are an elite interview coach with deep expertise in helping candidates improve. Analyze the interview Q&A below and provide detailed, specific, actionable feedback.
 

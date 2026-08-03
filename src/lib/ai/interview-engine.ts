@@ -172,6 +172,31 @@ function generateFollowUpRuleBased(previousQuestion: string, userAnswer: string)
   return null
 }
 
+function extractJsonObject(response: string): Record<string, unknown> | null {
+  const trimmed = response.trim()
+  try {
+    const parsed = JSON.parse(trimmed)
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed
+  } catch {
+    // fall through to fence stripping
+  }
+
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
+  const candidate = fenceMatch ? fenceMatch[1] : trimmed
+
+  const objStart = candidate.indexOf("{")
+  const objEnd = candidate.lastIndexOf("}")
+  if (objStart !== -1 && objEnd > objStart) {
+    try {
+      const parsed = JSON.parse(candidate.slice(objStart, objEnd + 1))
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed
+    } catch {
+      // fall through
+    }
+  }
+  return null
+}
+
 function generateFeedbackRuleBased(
   questions: { question: string; answer: string }[],
   interviewType: string
@@ -275,6 +300,32 @@ export function generateQuestions(
   return generateQuestionsRuleBased(interviewType, difficulty, count)
 }
 
+function extractJsonArray(response: string): Record<string, unknown>[] {
+  const trimmed = response.trim()
+  try {
+    const parsed = JSON.parse(trimmed)
+    if (Array.isArray(parsed)) return parsed
+    if (parsed && Array.isArray(parsed.questions)) return parsed.questions
+  } catch {
+    // fall through to fence stripping
+  }
+
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
+  const candidate = fenceMatch ? fenceMatch[1] : trimmed
+
+  const arrayStart = candidate.indexOf("[")
+  const arrayEnd = candidate.lastIndexOf("]")
+  if (arrayStart !== -1 && arrayEnd > arrayStart) {
+    try {
+      const parsed = JSON.parse(candidate.slice(arrayStart, arrayEnd + 1))
+      if (Array.isArray(parsed)) return parsed
+    } catch {
+      // fall through
+    }
+  }
+  return []
+}
+
 export async function generateQuestionsWithAI(
   interviewType: string,
   difficulty: string,
@@ -288,6 +339,10 @@ export async function generateQuestionsWithAI(
   }
 
   try {
+    if (!jdText || jdText.trim() === "") {
+      console.warn("[interview-engine] No job description provided - AI will use candidate skills only")
+    }
+
     const contextParts: string[] = [
       `Interview type: ${interviewType}`,
       `Difficulty: ${difficulty}`,
@@ -298,7 +353,9 @@ export async function generateQuestionsWithAI(
       contextParts.push(`Candidate skills: ${resumeSkills.join(", ")}`)
     }
     if (jdText) {
-      contextParts.push(`Job description: ${jdText}`)
+      contextParts.push(
+        `JOB DESCRIPTION (this is the primary source for all questions - every question MUST map to a requirement below):\n${jdText.slice(0, 8000)}`
+      )
     }
 
     const userMessage = contextParts.join("\n")
@@ -314,8 +371,8 @@ export async function generateQuestionsWithAI(
       return generateQuestionsRuleBased(interviewType, difficulty, count)
     }
 
-    const parsed = JSON.parse(response)
-    const questions = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.questions) ? parsed.questions : [])
+    const parsed = extractJsonArray(response)
+    const questions = parsed
 
     return questions.slice(0, count).map((q: Record<string, unknown>, i: number) => ({
       id: crypto.randomUUID(),
@@ -421,15 +478,22 @@ export async function generateFeedbackWithAI(
       return generateFeedbackRuleBased(questions, interviewType)
     }
 
-    const parsed = JSON.parse(response)
+    const parsed = extractJsonObject(response)
+    if (!parsed) {
+      console.log("[interview-engine] AI returned invalid feedback JSON, falling back to rule-based")
+      return generateFeedbackRuleBased(questions, interviewType)
+    }
 
     return {
       id: crypto.randomUUID(),
       sessionId: "",
       overallScore: typeof parsed.overallScore === "number" ? parsed.overallScore : null,
-      dimensionScores: parsed.dimensionScores || null,
-      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : null,
-      weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : null,
+      dimensionScores:
+        parsed.dimensionScores && typeof parsed.dimensionScores === "object"
+          ? (parsed.dimensionScores as DimensionScores)
+          : null,
+      strengths: Array.isArray(parsed.strengths) ? (parsed.strengths as string[]) : null,
+      weaknesses: Array.isArray(parsed.weaknesses) ? (parsed.weaknesses as string[]) : null,
       summary: typeof parsed.summary === "string" ? parsed.summary : null,
       generatedAt: new Date().toISOString(),
     }
