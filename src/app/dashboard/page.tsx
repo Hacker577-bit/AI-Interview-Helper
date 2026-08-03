@@ -293,7 +293,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Recent Interviews</h3>
           <Link
-            href="/history"
+                      href="/dashboard/history"
             className="flex items-center gap-1 text-sm text-primary hover:underline"
           >
             View all
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
-                      href="/history"
+            href="/dashboard/history"
                       className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                     >
                       <Eye className="h-4 w-4" />
@@ -348,7 +348,7 @@ export default function DashboardPage() {
 
       <div className="flex justify-center pb-4">
         <Link
-          href="/interviews"
+          href="/dashboard/interviews"
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90"
         >
           <MessageSquare className="h-4 w-4" />

@@ -117,7 +117,7 @@ export default function SkillGapPage() {
         throw new Error(data.error || "Failed to generate learning roadmap")
       }
       await res.json()
-      router.push("/learning-path")
+      router.push("/dashboard/learning-path")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate learning roadmap")
     } finally {

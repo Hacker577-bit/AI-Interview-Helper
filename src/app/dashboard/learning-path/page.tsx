@@ -126,7 +126,7 @@ export default function LearningPathPage() {
           description="Generate your personalized AI learning roadmap based on your skill gaps and target role."
           action={
             <button
-              onClick={() => router.push("/skill-gap")}
+              onClick={() => router.push("/dashboard/skill-gap")}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow transition-all hover:bg-primary/90 hover:shadow-lg"
             >
               <Sparkles className="h-4 w-4" />
