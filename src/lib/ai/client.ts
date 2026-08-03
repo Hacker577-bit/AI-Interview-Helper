@@ -1,11 +1,14 @@
 import OpenAI from "openai"
 
+const GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 const GROK_BASE_URL = "https://api.x.ai/v1"
+const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 const DEFAULT_GROK_MODEL = "grok-3-mini"
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 
 let openaiClient: OpenAI | null = null
 let grokClient: OpenAI | null = null
+let groqClient: OpenAI | null = null
 
 function resolveEnv(...names: string[]): string | undefined {
   for (const name of names) {
@@ -13,6 +16,10 @@ function resolveEnv(...names: string[]): string | undefined {
     if (value && value !== "") return value
   }
   return undefined
+}
+
+function getGroqApiKey(): string | undefined {
+  return resolveEnv("GROQ_API_KEY")
 }
 
 function getGrokApiKey(): string | undefined {
@@ -23,9 +30,10 @@ function getOpenAIKey(): string | undefined {
   return resolveEnv("OPENAI_API_KEY")
 }
 
-export type AIProvider = "grok" | "openai" | null
+export type AIProvider = "groq" | "grok" | "openai" | null
 
 export function getAIProvider(): AIProvider {
+  if (getGroqApiKey()) return "groq"
   if (getGrokApiKey()) return "grok"
   if (getOpenAIKey()) return "openai"
   return null
@@ -33,6 +41,14 @@ export function getAIProvider(): AIProvider {
 
 export function isAIEnabled(): boolean {
   return getAIProvider() !== null
+}
+
+function getGroqClient(): OpenAI | null {
+  const apiKey = getGroqApiKey()
+  if (!apiKey) return null
+  if (groqClient) return groqClient
+  groqClient = new OpenAI({ apiKey, baseURL: GROQ_BASE_URL })
+  return groqClient
 }
 
 function getGrokClient(): OpenAI | null {
@@ -52,7 +68,7 @@ function getOpenAIClient(): OpenAI | null {
 }
 
 export function getAIClient(): OpenAI | null {
-  return getGrokClient() || getOpenAIClient()
+  return getGroqClient() || getGrokClient() || getOpenAIClient()
 }
 
 export async function chatCompletion(
@@ -72,7 +88,11 @@ export async function chatCompletion(
   try {
     const model =
       options?.model ||
-      (provider === "grok" ? DEFAULT_GROK_MODEL : DEFAULT_OPENAI_MODEL)
+      (provider === "groq"
+        ? DEFAULT_GROQ_MODEL
+        : provider === "grok"
+          ? DEFAULT_GROK_MODEL
+          : DEFAULT_OPENAI_MODEL)
 
     const response = await client.chat.completions.create({
       model,
