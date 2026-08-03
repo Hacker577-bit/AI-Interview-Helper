@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { getCurrentUser } from "@/lib/auth"
+import { checkInterviewQuota, incrementInterviewUsage } from "@/lib/billing"
 import { generateQuestions, generateQuestionsWithAI } from "@/lib/ai/interview-engine"
-
-const FREE_MONTHLY_LIMIT = 3
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,46 +11,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { planTier: true, interviewUsageMonth: true, interviewUsageReset: true },
-    })
-
-    if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    if (dbUser.planTier === "FREE") {
-      const usageReset = dbUser.interviewUsageReset
-        ? new Date(dbUser.interviewUsageReset)
-        : null
-
-      if (!usageReset || usageReset < monthStart) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            interviewUsageMonth: 0,
-            interviewUsageReset: monthStart,
-          },
-        })
-      } else {
-        const currentUsage = dbUser.interviewUsageMonth
-        if (currentUsage >= FREE_MONTHLY_LIMIT) {
-          return NextResponse.json(
-            {
-              error: "Monthly interview limit reached",
-              detail: `Free users can start ${FREE_MONTHLY_LIMIT} interviews per month.`,
-              upgradeUrl: "/dashboard/settings?tab=billing",
-              currentUsage,
-              limit: FREE_MONTHLY_LIMIT,
-            },
-            { status: 429 }
-          )
-        }
-      }
+    const quota = await checkInterviewQuota(user.id)
+    if (!quota.allowed) {
+      return NextResponse.json(
+        {
+          error: quota.reason || "Monthly interview limit reached",
+          detail: quota.reason || "You have used all interviews for this billing period.",
+          upgradeUrl: "/dashboard/settings?tab=billing",
+        },
+        { status: 429 }
+      )
     }
 
     const body = await req.json()
@@ -90,10 +59,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { interviewUsageMonth: { increment: 1 } },
-    })
+    await incrementInterviewUsage(user.id)
 
     let resumeSkills: string[] | undefined
     if (resumeId) {

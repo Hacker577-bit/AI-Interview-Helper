@@ -14,14 +14,30 @@ export async function GET() {
       where: { userId: user.id },
       select: {
         id: true,
+        fileUrl: true,
         fileName: true,
+        parsedText: true,
         isCurrent: true,
         createdAt: true,
+        skills: true,
+        experiences: true,
+        educations: true,
       },
       orderBy: { createdAt: "desc" },
     })
 
-    return NextResponse.json({ resumes })
+    const resumesWithParsed = resumes.map((resume) => {
+      const { experiences: rawExperiences, ...rest } = resume
+      return {
+        ...rest,
+        experiences: rawExperiences.map((exp) => ({
+          ...exp,
+          highlights: exp.highlights ? JSON.parse(exp.highlights) : null,
+        })),
+      }
+    })
+
+    return NextResponse.json({ resumes: resumesWithParsed })
   } catch (error) {
     return handleApiError(error)
   }

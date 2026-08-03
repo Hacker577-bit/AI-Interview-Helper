@@ -39,6 +39,7 @@ model Resume {
   userId      String
   fileUrl     String?
   fileName    String
+  fileData    Bytes?
   parsedText  String?
   rawAiOutput String?
   isCurrent   Boolean  @default(false)

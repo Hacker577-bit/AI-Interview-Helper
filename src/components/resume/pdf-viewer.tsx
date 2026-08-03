@@ -30,7 +30,7 @@ export function PdfViewer({ fileUrl, fileName }: PdfViewerProps) {
           Open <ExternalLink className="h-3 w-3" />
         </a>
       </div>
-      {fileUrl.endsWith(".pdf") ? (
+      {fileName.toLowerCase().endsWith(".pdf") ? (
         <iframe src={fileUrl} className="w-full h-[500px]" title={fileName} />
       ) : (
         <div className="p-8 text-center text-muted-foreground">

@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/db"
-import { checkInterviewQuota } from "@/lib/billing"
 
 const COOKIE_NAME = "aic-session"
 
@@ -50,19 +48,8 @@ export default async function middleware(request: NextRequest) {
 
   if (pathname === "/api/interview/start") {
     const userId = getUserIdFromToken(token)
-    if (userId) {
-      try {
-        const quota = await checkInterviewQuota(userId)
-        if (!quota.allowed) {
-          const statusCode = quota.reason?.includes("Upgrade required") ? 402 : 402
-          return NextResponse.json(
-            { error: quota.reason || "Interview limit reached" },
-            { status: statusCode, statusText: quota.reason || "Limit reached" }
-          )
-        }
-      } catch (err) {
-        console.error("Quota check failed in middleware:", err)
-      }
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
   }
 

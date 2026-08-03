@@ -67,39 +67,11 @@ function extractSkillsRuleBased(text: string): ParsedSkill[] {
 }
 
 function extractExperiencesRuleBased(_text: string): ParsedExperience[] {
-  return [
-    {
-      id: crypto.randomUUID(),
-      company: "TechCorp Inc.",
-      title: "Senior Software Engineer",
-      startDate: "2022-01-01",
-      endDate: "2024-12-31",
-      description: "Led development of microservices architecture serving 1M+ users. Improved system performance by 40%.",
-      highlights: ["Led cross-functional team of 5 engineers", "Reduced API latency by 40%", "Implemented CI/CD pipeline reducing deploy time by 60%"],
-    },
-    {
-      id: crypto.randomUUID(),
-      company: "StartupXYZ",
-      title: "Software Engineer",
-      startDate: "2019-06-01",
-      endDate: "2021-12-31",
-      description: "Full-stack development using React and Node.js. Built customer-facing dashboard used by 50K+ users.",
-      highlights: ["Built real-time analytics dashboard", "Migrated legacy codebase to TypeScript", "Reduced bundle size by 35%"],
-    },
-  ]
+  return []
 }
 
 function extractEducationRuleBased(_text: string): ParsedEducation[] {
-  return [
-    {
-      id: crypto.randomUUID(),
-      school: "State University",
-      degree: "Bachelor of Science",
-      field: "Computer Science",
-      startYear: 2015,
-      endYear: 2019,
-    },
-  ]
+  return []
 }
 
 export function extractSkills(text: string): ParsedSkill[] {
