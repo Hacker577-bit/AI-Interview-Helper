@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle, Info, XCircle, X } from "lucide-react"
 import { useState } from "react"
 
 const variants = {
-  info: { icon: Info, bg: "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300" },
+  info: { icon: Info, bg: "bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950 dark:border-indigo-800 dark:text-indigo-300" },
   success: { icon: CheckCircle, bg: "bg-green-50 border-green-200 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-300" },
   warning: { icon: AlertTriangle, bg: "bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-300" },
   error: { icon: XCircle, bg: "bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-300" },

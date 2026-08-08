@@ -83,9 +83,9 @@ const statCards = [
 
 const colorVariants: Record<string, { bg: string; text: string; darkBg: string }> = {
   blue: {
-    bg: "bg-blue-100",
-    text: "text-blue-600",
-    darkBg: "dark:bg-blue-900/30",
+    bg: "bg-indigo-100",
+    text: "text-indigo-600",
+    darkBg: "dark:bg-indigo-900/30",
   },
   green: {
     bg: "bg-green-100",
@@ -222,7 +222,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="h-2 rounded-full bg-muted">
                 <div
-                  className="h-2 rounded-full bg-blue-500"
+                  className="h-2 rounded-full bg-violet-500"
                   style={{
                     width: `${stats.totalUsers > 0 ? (stats.usersByPlan.pro / stats.totalUsers) * 100 : 0}%`,
                   }}

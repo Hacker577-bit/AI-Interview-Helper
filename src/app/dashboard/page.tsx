@@ -60,10 +60,10 @@ const stats = [
 
 const colorVariants: Record<string, { bg: string; text: string; darkBg: string; gradient: string }> = {
   blue: {
-    bg: "bg-blue-100",
-    text: "text-blue-600",
-    darkBg: "dark:bg-blue-900/30",
-    gradient: "from-blue-500 to-cyan-400",
+    bg: "bg-indigo-100",
+    text: "text-indigo-600",
+    darkBg: "dark:bg-indigo-900/30",
+    gradient: "from-violet-500 to-indigo-400",
   },
   green: {
     bg: "bg-green-100",

@@ -7,8 +7,8 @@ const features = [
     title: "AI Resume Analysis",
     description:
       "Upload your resume and let AI extract your skills, experience, and key talking points.",
-    color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-    gradient: "from-blue-500 to-cyan-400",
+    color: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
+    gradient: "from-violet-500 to-indigo-400",
   },
   {
     icon: Brain,

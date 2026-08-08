@@ -27,7 +27,7 @@ interface PathItem {
 }
 
 const typeConfig: Record<PathItem["type"], { label: string; color: string }> = {
-  COURSE: { label: "Course", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  COURSE: { label: "Course", color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" },
   PROJECT: { label: "Project", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
   PRACTICE: { label: "Practice", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
   READING: { label: "Reading", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" },
