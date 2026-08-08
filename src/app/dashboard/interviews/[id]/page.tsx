@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Clock, Send, Loader2, AlertCircle, CheckCircle2, Flag, Sparkles, Keyboard } from "lucide-react"
+import { Clock, Send, Loader2, AlertCircle, CheckCircle2, Flag, Sparkles, Keyboard, Mic } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { PageLoader } from "@/components/ui/loading-spinner"
 import { Alert } from "@/components/ui/alert"
+import { VoiceControls } from "@/components/interview/voice-controls"
+import { useVoice } from "@/hooks/use-voice"
 
 interface Question {
   id: string
@@ -37,9 +39,22 @@ export default function InterviewSessionPage() {
   const [isComplete, setIsComplete] = useState(false)
   const [totalQuestions, setTotalQuestions] = useState(0)
   const [answeredCount, setAnsweredCount] = useState(0)
+  const [mode, setMode] = useState<"TEXT" | "VOICE" | "VIDEO">("TEXT")
   const [startTime, setStartTime] = useState<number>(Date.now())
   const [elapsed, setElapsed] = useState(0)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const answerSourceRef = useRef<"text" | "voice">("text")
+
+  const voice = useVoice({
+    onTranscriptChange: useCallback((text: string) => {
+      answerSourceRef.current = "voice"
+      setAnswer(text)
+    }, []),
+  })
+  const voiceRef = useRef(voice)
+  voiceRef.current = voice
+
+  const isVoiceMode = mode === "VOICE"
 
   const wordCount = answer.split(/\s+/).filter(Boolean).length
   const charCount = answer.length
@@ -67,7 +82,9 @@ export default function InterviewSessionPage() {
         throw new Error("Failed to fetch question")
       }
       const data = await res.json()
+      if (data.mode) setMode(data.mode)
       if (data.isComplete) {
+        voiceRef.current.stopAll()
         setIsComplete(true)
         setCurrentQuestion(null)
       } else {
@@ -87,12 +104,29 @@ export default function InterviewSessionPage() {
     fetchNextQuestion()
   }, [fetchNextQuestion])
 
+  useEffect(() => {
+    if (!currentQuestion || !isVoiceMode) return
+
+    voiceRef.current.stopAll()
+    voiceRef.current.resetTranscript()
+    answerSourceRef.current = "text"
+    setAnswer("")
+
+    const timer = setTimeout(() => {
+      voiceRef.current.speak(currentQuestion.questionText)
+    }, 350)
+
+    return () => clearTimeout(timer)
+  }, [currentQuestion, isVoiceMode])
+
   const handleSubmit = async () => {
     if (!answer.trim() || !currentQuestion) return
 
+    voice.cancelListening()
     setSubmitting(true)
     try {
       const responseTimeMs = Date.now() - startTime
+      const source = answerSourceRef.current
 
       const res = await fetch(`/api/interview/${sessionId}/question`, {
         method: "POST",
@@ -101,6 +135,8 @@ export default function InterviewSessionPage() {
           questionId: currentQuestion.id,
           answer: answer.trim(),
           responseTimeMs,
+          source,
+          transcribedText: source === "voice" ? answer.trim() : undefined,
         }),
       })
 
@@ -111,6 +147,7 @@ export default function InterviewSessionPage() {
       const data = await res.json()
 
       if (data.isComplete) {
+        voice.stopAll()
         setIsComplete(true)
         setCurrentQuestion(null)
         setAnsweredCount((prev) => prev + 1)
@@ -123,6 +160,7 @@ export default function InterviewSessionPage() {
         }
       }
 
+      answerSourceRef.current = "text"
       setAnswer("")
       setStartTime(Date.now())
 
@@ -268,6 +306,12 @@ export default function InterviewSessionPage() {
                 {currentQuestion.category.replace(/_/g, " ")}
               </span>
             )}
+            {isVoiceMode && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600">
+                <Mic className="h-3 w-3" />
+                Voice mode
+              </span>
+            )}
           </div>
 
           <h3 className="mt-4 text-lg font-semibold leading-relaxed">
@@ -277,12 +321,39 @@ export default function InterviewSessionPage() {
       )}
 
       <div className="rounded-xl border bg-card p-6 shadow-card">
+        {isVoiceMode && (
+          <div className="mb-4 space-y-3">
+            <VoiceControls
+              isSpeaking={voice.isSpeaking}
+              isListening={voice.isListening}
+              ttsSupported={voice.ttsSupported}
+              sttSupported={voice.sttSupported}
+              interimTranscript={voice.interimTranscript}
+              error={voice.error}
+              disabled={submitting}
+              onSpeakQuestion={() => currentQuestion && voice.speak(currentQuestion.questionText)}
+              onStopSpeaking={voice.stopSpeaking}
+              onStartListening={voice.startListening}
+              onStopListening={voice.stopListening}
+            />
+            {!voice.ttsSupported && !voice.sttSupported && (
+              <Alert variant="warning" title="Voice features unavailable">
+                Your browser does not support voice features. You can still complete this interview by typing your
+                answers below.
+              </Alert>
+            )}
+          </div>
+        )}
+
         <textarea
           ref={inputRef}
           value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
+          onChange={(e) => {
+            answerSourceRef.current = "text"
+            setAnswer(e.target.value)
+          }}
           onKeyDown={handleKeyDown}
-          placeholder="Type your answer here... Be specific, use examples, and quantify results where possible."
+          placeholder={isVoiceMode ? "Your spoken answer appears here. Review and edit if needed..." : "Type your answer here... Be specific, use examples, and quantify results where possible."}
           rows={6}
           className="w-full resize-none rounded-lg border bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           disabled={submitting}

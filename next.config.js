@@ -10,6 +10,7 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+  allowedDevOrigins: ['.monkeycode-ai.live'],
   headers: async () => [
     {
       source: '/(.*)',

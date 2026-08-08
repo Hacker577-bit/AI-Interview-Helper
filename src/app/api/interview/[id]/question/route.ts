@@ -57,6 +57,7 @@ export async function GET(
       {
         question: nextQuestion,
         isComplete: false,
+        mode: session.mode,
         totalQuestions: session.questionCount,
         answeredCount: await prisma.interviewQuestion.count({
           where: { sessionId: params.id, isAnswered: true },
@@ -105,6 +106,11 @@ export async function POST(
     }
 
     const { questionId, responseText: answer, responseTimeMs } = parsed.data
+    const source = body.source === "voice" ? "voice" : "text"
+    const transcribedText =
+      source === "voice" && typeof body.transcribedText === "string" && body.transcribedText.trim() !== ""
+        ? body.transcribedText
+        : null
 
     const session = await prisma.interviewSession.findUnique({
       where: { id: params.id },
@@ -132,6 +138,7 @@ export async function POST(
       data: {
         questionId: question.id,
         responseText: answer,
+        transcribedText: source === "voice" ? (transcribedText ?? answer) : null,
         responseTimeMs: responseTimeMs || null,
         wordCount,
       },
