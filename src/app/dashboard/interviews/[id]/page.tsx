@@ -254,7 +254,7 @@ export default function InterviewSessionPage() {
               </button>
               <button
                 onClick={handleFinish}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
               >
                 <Sparkles className="h-4 w-4" />
                 View AI Feedback
@@ -283,7 +283,7 @@ export default function InterviewSessionPage() {
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-indigo-500 transition-all duration-500 ease-out"
+            className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -372,7 +372,7 @@ export default function InterviewSessionPage() {
             className={cn(
               "inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all",
               answer.trim()
-                ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40"
+                ? "bg-primary text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40"
                 : "cursor-not-allowed bg-muted text-muted-foreground"
             )}
           >

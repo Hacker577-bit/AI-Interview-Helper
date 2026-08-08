@@ -68,7 +68,7 @@ export function VoiceControls({
             "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-all shadow-lg",
             isListening
               ? "bg-red-500 shadow-red-500/30 hover:bg-red-600"
-              : "bg-gradient-to-r from-primary to-indigo-600 shadow-primary/30 hover:shadow-xl hover:shadow-primary/40",
+              : "bg-primary shadow-primary/30 hover:shadow-xl hover:shadow-primary/40",
             listeningDisabled && "cursor-not-allowed opacity-50"
           )}
         >

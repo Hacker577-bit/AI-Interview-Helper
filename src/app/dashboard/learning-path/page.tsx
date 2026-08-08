@@ -27,7 +27,7 @@ interface PathItem {
 }
 
 const typeConfig: Record<PathItem["type"], { label: string; color: string }> = {
-  COURSE: { label: "Course", color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" },
+  COURSE: { label: "Course", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
   PROJECT: { label: "Project", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
   PRACTICE: { label: "Practice", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
   READING: { label: "Reading", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" },
@@ -176,7 +176,7 @@ export default function LearningPathPage() {
         </div>
         <div className="h-3 overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-indigo-500 transition-all duration-500"
+            className="h-full rounded-full bg-primary transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -187,7 +187,7 @@ export default function LearningPathPage() {
         <div className="absolute left-6 top-0 h-full w-0.5 bg-gradient-to-b from-primary/40 to-transparent" />
         {weekGroups.map((week, weekIdx) => (
           <div key={week.week} className="relative pb-8 pl-16">
-            <div className="absolute left-0 flex h-12 w-12 items-center justify-center rounded-full border-4 border-background bg-gradient-to-br from-primary to-indigo-600 text-sm font-bold text-white shadow-lg">
+            <div className="absolute left-0 flex h-12 w-12 items-center justify-center rounded-full border-4 border-background bg-primary text-sm font-bold text-white shadow-lg">
               W{week.week}
             </div>
             <div className="rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">

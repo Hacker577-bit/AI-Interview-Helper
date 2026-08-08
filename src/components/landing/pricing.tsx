@@ -184,8 +184,8 @@ export function Pricing() {
               >
                 {plan.highlighted && (
                   <>
-                    <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-indigo-500/20" />
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-indigo-600 px-4 py-1 text-xs font-semibold text-white shadow-lg shadow-primary/30">
+                    <div className="pointer-events-none absolute -inset-px rounded-2xl bg-primary/20" />
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-white shadow-lg shadow-primary/30">
                       Most Popular
                     </span>
                   </>
@@ -216,7 +216,7 @@ export function Pricing() {
                         className={cn(
                           "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
                           plan.highlighted
-                            ? "bg-gradient-to-br from-primary to-indigo-600 text-white"
+                            ? "bg-primary text-white"
                             : "bg-primary/10"
                         )}
                       >
@@ -253,7 +253,7 @@ export function Pricing() {
                     className={cn(
                       "relative rounded-lg px-6 py-3 text-center text-sm font-semibold transition-all disabled:opacity-50",
                       plan.highlighted
-                        ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
+                        ? "bg-primary text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
                         : "border border-border text-foreground hover:bg-accent"
                     )}
                   >

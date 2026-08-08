@@ -52,10 +52,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="relative hidden w-1/2 overflow-hidden bg-gradient-to-br from-primary via-indigo-600 to-purple-700 lg:block">
+      <div className="relative hidden w-1/2 overflow-hidden bg-primary lg:block">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-20 -left-20 h-80 w-80 rounded-full bg-white/10 blur-3xl animate-blob" />
-          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl animate-blob [animation-delay:3s]" />
+          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl animate-blob [animation-delay:3s]" />
         </div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-40" />
         <div className="relative flex h-full flex-col justify-between p-12">
@@ -92,7 +92,7 @@ export default function LoginPage() {
       <div className="flex w-full items-center justify-center bg-background px-4 lg:w-1/2">
         <div className="w-full max-w-md">
           <Link href="/" className="mb-8 flex items-center gap-2.5 text-xl font-bold text-foreground lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-indigo-600 text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white">
               <Brain className="h-5 w-5" />
             </div>
             InterviewAI
@@ -153,7 +153,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
+                className="group flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

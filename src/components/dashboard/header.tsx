@@ -46,7 +46,7 @@ export default function Header({ title, onMenuClick, user }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="hidden items-center gap-1.5 rounded-full bg-gradient-to-r from-primary/10 to-indigo-500/10 px-3 py-1.5 text-xs font-medium text-primary md:inline-flex">
+        <span className="hidden items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary md:inline-flex">
           <Sparkles className="h-3.5 w-3.5" />
           AI Powered
         </span>
@@ -75,7 +75,7 @@ export default function Header({ title, onMenuClick, user }: HeaderProps) {
 
         <div
           className={cn(
-            "hidden h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-indigo-600 text-xs font-bold text-white sm:flex"
+            "hidden h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white sm:flex"
           )}
         >
           {initials}

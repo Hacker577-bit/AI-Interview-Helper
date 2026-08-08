@@ -334,7 +334,7 @@ export default function SkillGapPage() {
           )}
 
           <div className="flex flex-col items-center gap-4 rounded-xl border bg-gradient-to-r from-primary/10 via-card to-card p-6 text-center shadow-sm sm:flex-row sm:text-left">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-indigo-600 text-white shadow-lg">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-white shadow-lg">
               <BookOpen className="h-6 w-6" />
             </div>
             <div className="flex-1">

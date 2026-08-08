@@ -229,7 +229,7 @@ export default function InterviewsPage() {
                   <mode.icon className="h-4 w-4" />
                   {mode.label}
                   {!mode.enabled && (
-                    <span className="absolute -right-2 -top-2 inline-flex items-center rounded-full bg-gradient-to-r from-primary to-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    <span className="absolute -right-2 -top-2 inline-flex items-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
                       Soon
                     </span>
                   )}
@@ -257,7 +257,7 @@ export default function InterviewsPage() {
           <button
             onClick={handleStart}
             disabled={starting}
-            className="group flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 disabled:opacity-60"
+            className="group flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 disabled:opacity-60"
           >
             {starting ? (
               <>

@@ -70,7 +70,7 @@ function ScoreCircle({ score }: { score: number | null }) {
 function DimensionBar({ label, value }: { label: string; value: number }) {
   const pct = (value / 10) * 100
   const color =
-    pct >= 80 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : pct >= 60 ? "bg-gradient-to-r from-amber-500 to-orange-400" : "bg-gradient-to-r from-red-500 to-rose-400"
+    pct >= 80 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-500" : "bg-red-500"
 
   return (
     <div className="space-y-1.5">
@@ -103,7 +103,7 @@ export function FeedbackDisplay({ report }: FeedbackDisplayProps) {
       <div className="relative overflow-hidden rounded-xl border bg-card p-8 shadow-card">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
         </div>
         <div className="relative flex flex-col items-center gap-2">
           <h2 className="text-xl font-bold">Interview Score</h2>
@@ -171,7 +171,7 @@ export function FeedbackDisplay({ report }: FeedbackDisplayProps) {
       )}
 
       {summary && (
-        <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-indigo-500/5 p-6 shadow-card">
+        <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5 p-6 shadow-card">
           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-primary">
             <Sparkles className="h-4 w-4" />
             AI Assessment

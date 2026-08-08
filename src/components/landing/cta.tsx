@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils"
 
 export function CTA() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary via-indigo-600 to-purple-700 py-20 lg:py-28">
+    <section className="relative overflow-hidden bg-primary py-20 lg:py-28">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-20 right-10 h-72 w-72 rounded-full bg-white/10 blur-3xl animate-blob" />
-        <div className="absolute bottom-0 left-10 h-64 w-64 rounded-full bg-fuchsia-400/20 blur-3xl animate-blob [animation-delay:4s]" />
+        <div className="absolute bottom-0 left-10 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-blob [animation-delay:4s]" />
       </div>
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
 

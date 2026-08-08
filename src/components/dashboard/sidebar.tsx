@@ -77,7 +77,7 @@ export default function Sidebar({ isOpen, onClose, user }: SidebarProps) {
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-indigo-600 shadow-lg shadow-primary/25">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/25">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-bold tracking-tight">InterviewAI</span>
@@ -109,7 +109,7 @@ export default function Sidebar({ isOpen, onClose, user }: SidebarProps) {
                 )}
               >
                 {isActive && (
-                  <span className="absolute left-0 h-5 w-1 rounded-r-full bg-gradient-to-b from-primary to-indigo-500" />
+                  <span className="absolute left-0 h-5 w-1 rounded-r-full bg-primary" />
                 )}
                 <item.icon
                   className={cn(
@@ -128,7 +128,7 @@ export default function Sidebar({ isOpen, onClose, user }: SidebarProps) {
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-indigo-600 text-xs font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
               {initials}
             </div>
             <div className="flex-1 text-left">

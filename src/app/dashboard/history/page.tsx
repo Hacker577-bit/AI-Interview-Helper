@@ -120,7 +120,7 @@ export default function HistoryPage() {
           action={
             <button
               onClick={() => router.push("/dashboard/interviews")}
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
             >
               <Play className="h-4 w-4" />
               Start Your First Interview
@@ -148,7 +148,7 @@ export default function HistoryPage() {
             className={cn(
               "whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all",
               activeFilter === filter.value
-                ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/25"
+                ? "bg-primary text-white shadow-lg shadow-primary/25"
                 : "bg-muted text-muted-foreground hover:bg-accent"
             )}
           >

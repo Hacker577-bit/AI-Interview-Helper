@@ -60,28 +60,28 @@ const stats = [
 
 const colorVariants: Record<string, { bg: string; text: string; darkBg: string; gradient: string }> = {
   blue: {
-    bg: "bg-indigo-100",
-    text: "text-indigo-600",
-    darkBg: "dark:bg-indigo-900/30",
-    gradient: "from-violet-500 to-indigo-400",
+    bg: "bg-blue-100",
+    text: "text-blue-600",
+    darkBg: "dark:bg-blue-900/30",
+    gradient: "from-blue-500 to-blue-400",
   },
   green: {
     bg: "bg-green-100",
     text: "text-green-600",
     darkBg: "dark:bg-green-900/30",
-    gradient: "from-emerald-500 to-teal-400",
+    gradient: "from-emerald-500 to-emerald-400",
   },
   orange: {
     bg: "bg-orange-100",
     text: "text-orange-600",
     darkBg: "dark:bg-orange-900/30",
-    gradient: "from-orange-500 to-amber-400",
+    gradient: "from-orange-500 to-orange-400",
   },
   purple: {
     bg: "bg-purple-100",
     text: "text-purple-600",
     darkBg: "dark:bg-purple-900/30",
-    gradient: "from-purple-500 to-fuchsia-400",
+    gradient: "from-purple-500 to-purple-400",
   },
 }
 

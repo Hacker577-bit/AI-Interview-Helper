@@ -7,8 +7,8 @@ const features = [
     title: "AI Resume Analysis",
     description:
       "Upload your resume and let AI extract your skills, experience, and key talking points.",
-    color: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
-    gradient: "from-violet-500 to-indigo-400",
+    color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    gradient: "from-blue-500 to-blue-400",
   },
   {
     icon: Brain,
@@ -16,7 +16,7 @@ const features = [
     description:
       "Get role-specific interview questions tailored to your resume and target job.",
     color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
-    gradient: "from-purple-500 to-fuchsia-400",
+    gradient: "from-purple-500 to-purple-400",
   },
   {
     icon: MessageSquare,
@@ -24,7 +24,7 @@ const features = [
     description:
       "Receive instant scoring on clarity, relevance, depth, and delivery.",
     color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
-    gradient: "from-emerald-500 to-teal-400",
+    gradient: "from-emerald-500 to-emerald-400",
   },
   {
     icon: TrendingUp,
@@ -32,7 +32,7 @@ const features = [
     description:
       "Track your improvement over time with detailed analytics and score trends.",
     color: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
-    gradient: "from-amber-500 to-orange-400",
+    gradient: "from-amber-500 to-amber-400",
   },
   {
     icon: Mic,
@@ -40,7 +40,7 @@ const features = [
     description:
       "Practice in text or voice mode for a realistic interview experience.",
     color: "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400",
-    gradient: "from-rose-500 to-pink-400",
+    gradient: "from-rose-500 to-rose-400",
   },
   {
     icon: Target,
@@ -48,7 +48,7 @@ const features = [
     description:
       "Identify your weak areas and get a personalized AI learning roadmap.",
     color: "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400",
-    gradient: "from-cyan-500 to-sky-400",
+    gradient: "from-cyan-500 to-cyan-400",
   },
 ]
 

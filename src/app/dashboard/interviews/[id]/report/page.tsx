@@ -97,7 +97,7 @@ export default function ReportPage() {
         </button>
         <button
           onClick={() => router.push("/dashboard/interviews")}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
         >
           <RotateCcw className="h-4 w-4" />
           Practice Again

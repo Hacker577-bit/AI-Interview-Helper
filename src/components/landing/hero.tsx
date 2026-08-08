@@ -9,11 +9,11 @@ const heroPoints = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary via-indigo-600 to-purple-700 pt-28 pb-20 lg:pt-36 lg:pb-28">
+    <section className="relative overflow-hidden bg-primary pt-28 pb-20 lg:pt-36 lg:pb-28">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-white/10 blur-3xl animate-blob" />
-        <div className="absolute top-1/2 right-0 h-80 w-80 -translate-y-1/2 rounded-full bg-fuchsia-400/20 blur-3xl animate-blob [animation-delay:3s]" />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl animate-blob [animation-delay:6s]" />
+        <div className="absolute top-1/2 right-0 h-80 w-80 -translate-y-1/2 rounded-full bg-white/10 blur-3xl animate-blob [animation-delay:3s]" />
+        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-white/10 blur-3xl animate-blob [animation-delay:6s]" />
       </div>
 
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-40" />
@@ -28,7 +28,7 @@ export function Hero() {
 
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Ace Your Next Interview{" "}
-              <span className="bg-gradient-to-r from-amber-200 via-orange-200 to-pink-200 bg-clip-text text-transparent">
+              <span className="text-cyan-200">
                 with AI
               </span>
             </h1>
@@ -66,7 +66,7 @@ export function Hero() {
 
             <div className="flex items-center gap-3 pt-2">
               <div className="flex -space-x-2">
-                {["from-blue-400 to-cyan-300", "from-pink-400 to-rose-300", "from-emerald-400 to-teal-300", "from-amber-400 to-orange-300"].map((g) => (
+                {["from-blue-400 to-blue-300", "from-pink-400 to-pink-300", "from-emerald-400 to-emerald-300", "from-amber-400 to-amber-300"].map((g) => (
                   <div
                     key={g}
                     className={`h-8 w-8 rounded-full border-2 border-white/30 bg-gradient-to-br ${g}`}
@@ -84,7 +84,7 @@ export function Hero() {
               <div className="absolute -inset-4 rounded-3xl bg-white/10 blur-2xl" />
               <div className="relative rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-md">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-indigo-500 text-sm font-bold text-white">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
                     AI
                   </div>
                   <div>

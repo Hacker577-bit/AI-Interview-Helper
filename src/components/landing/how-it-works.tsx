@@ -44,7 +44,7 @@ export function HowItWorks() {
           <div className="absolute top-1/2 left-8 right-8 hidden h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 lg:block" />
           {steps.map((step, index) => (
             <div key={step.number} className="relative flex flex-col items-center text-center">
-              <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-indigo-600 shadow-lg shadow-primary/25 transition-transform hover:scale-105">
+              <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25 transition-transform hover:scale-105">
                 <step.icon className="h-9 w-9 text-white" />
                 <span className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-white text-xs font-bold text-primary shadow dark:bg-foreground dark:text-background">
                   {index + 1}
