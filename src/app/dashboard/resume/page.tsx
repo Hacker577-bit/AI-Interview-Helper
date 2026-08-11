@@ -17,6 +17,8 @@ import {
   Star,
   ArrowRight,
   Sparkles,
+  Play,
+  MessageSquare,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -172,6 +174,38 @@ export default function ResumePage() {
   const [fileError, setFileError] = useState<string | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [jobMatches, setJobMatches] = useState<JobMatch[]>([])
+  const [startingInterview, setStartingInterview] = useState(false)
+
+  const handleStartTailoredInterview = async (roleTitle?: string) => {
+    setStartingInterview(true)
+    try {
+      const jdText = roleTitle
+        ? `I am interviewing for the role of ${roleTitle}. Please focus questions on the relevant skills, tools, and domain knowledge expected for this position.`
+        : undefined
+
+      const res = await fetch("/api/interview/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interviewType: "MIXED",
+          difficulty: "MID",
+          questionCount: 10,
+          mode: "TEXT",
+          resumeId: currentResume?.id || undefined,
+          jdText,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to start interview")
+      
+      toast.success("Tailored interview generated!")
+      router.push(`/dashboard/interviews/${data.session.id}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start interview")
+      setStartingInterview(false)
+    }
+  }
 
   const fetchResumes = useCallback(async () => {
     try {
@@ -576,6 +610,35 @@ export default function ResumePage() {
           </div>
 
           {/* ---------------------------------------------------------------- */}
+          {/* Tailored Interview Quick Start                                    */}
+          {/* ---------------------------------------------------------------- */}
+          <div className="rounded-xl border bg-card shadow-sm overflow-hidden p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 className="flex items-center gap-2 text-lg font-semibold">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  Start Tailored Interview
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Instantly generate an AI interview based directly on this resume's parsed skills and experience.
+                </p>
+              </div>
+              <button
+                onClick={() => handleStartTailoredInterview()}
+                disabled={startingInterview}
+                className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-primary/90 transition-colors disabled:opacity-60"
+              >
+                {startingInterview ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+                Start Interview Now
+              </button>
+            </div>
+          </div>
+
+          {/* ---------------------------------------------------------------- */}
           {/* Job Recommendations                                               */}
           {/* ---------------------------------------------------------------- */}
           {jobMatches.length > 0 && (
@@ -620,15 +683,16 @@ export default function ResumePage() {
                       </div>
                     </div>
                     <button
-                      onClick={() =>
-                        router.push(
-                          `/dashboard/interviews?role=${encodeURIComponent(job.title)}`
-                        )
-                      }
-                      className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-primary/90 transition-colors"
+                      onClick={() => handleStartTailoredInterview(job.title)}
+                      disabled={startingInterview}
+                      className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow hover:bg-primary/90 transition-colors disabled:opacity-60"
                     >
-                      Practice
-                      <ArrowRight className="h-3 w-3" />
+                      {startingInterview ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Play className="h-3 w-3" />
+                      )}
+                      Practice Role
                     </button>
                   </div>
                 ))}
