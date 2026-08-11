@@ -432,7 +432,7 @@ export default function ResumePage() {
                     e.preventDefault()
                     handleUpload()
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  className="relative z-10 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
                   <UploadCloud className="h-4 w-4" />
                   Upload & Parse
@@ -443,7 +443,7 @@ export default function ResumePage() {
                     e.preventDefault()
                     cancelPending()
                   }}
-                  className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-accent"
+                  className="relative z-10 inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-accent bg-background"
                 >
                   <X className="h-4 w-4" />
                   Cancel
