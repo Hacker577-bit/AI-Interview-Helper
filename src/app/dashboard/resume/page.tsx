@@ -633,7 +633,7 @@ export default function ResumePage() {
                   Start Tailored Interview
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Instantly generate an AI interview based directly on this resume's parsed skills and experience.
+                  Instantly generate an AI interview based directly on this resume&apos;s parsed skills and experience.
                 </p>
               </div>
               <button
