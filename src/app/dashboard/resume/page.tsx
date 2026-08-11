@@ -13,6 +13,10 @@ import {
   History,
   UploadCloud,
   X,
+  Briefcase,
+  Star,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -20,8 +24,144 @@ import { formatDate, formatRelativeTime } from "@/lib/utils"
 import { PdfViewer } from "@/components/resume/pdf-viewer"
 import { Badge } from "@/components/ui/badge"
 import type { Resume } from "@/types"
+import { useRouter } from "next/navigation"
+
+// ---------------------------------------------------------------------------
+// Job recommendation engine (client-side rule-based matching)
+// ---------------------------------------------------------------------------
+const JOB_ROLES: {
+  title: string
+  keywords: string[]
+  description: string
+  level: string
+}[] = [
+  {
+    title: "Frontend Developer",
+    keywords: ["react", "javascript", "typescript", "html", "css", "vue", "angular", "next", "tailwind", "redux", "webpack"],
+    description: "Build beautiful, interactive user interfaces for web applications.",
+    level: "Mid-Senior",
+  },
+  {
+    title: "Backend Developer",
+    keywords: ["node", "python", "java", "go", "express", "django", "spring", "rest", "api", "postgresql", "mysql", "mongodb"],
+    description: "Design and develop server-side logic and APIs.",
+    level: "Mid-Senior",
+  },
+  {
+    title: "Full Stack Developer",
+    keywords: ["react", "node", "javascript", "typescript", "mongodb", "postgresql", "express", "next", "graphql"],
+    description: "Work across the entire application stack, from UI to database.",
+    level: "Mid-Senior",
+  },
+  {
+    title: "Data Scientist",
+    keywords: ["python", "machine learning", "tensorflow", "pytorch", "pandas", "numpy", "scikit", "sql", "statistics", "data analysis", "deep learning"],
+    description: "Build predictive models and extract insights from large datasets.",
+    level: "Senior",
+  },
+  {
+    title: "Machine Learning Engineer",
+    keywords: ["python", "tensorflow", "pytorch", "ml", "machine learning", "deep learning", "nlp", "computer vision", "docker", "kubernetes"],
+    description: "Design and deploy scalable ML pipelines and AI systems.",
+    level: "Senior",
+  },
+  {
+    title: "DevOps Engineer",
+    keywords: ["docker", "kubernetes", "aws", "azure", "gcp", "ci/cd", "terraform", "jenkins", "linux", "git", "ansible"],
+    description: "Manage cloud infrastructure and automate deployment pipelines.",
+    level: "Mid-Senior",
+  },
+  {
+    title: "Mobile Developer",
+    keywords: ["react native", "flutter", "swift", "kotlin", "android", "ios", "xcode", "mobile", "dart"],
+    description: "Build native and cross-platform mobile applications.",
+    level: "Mid-Senior",
+  },
+  {
+    title: "Data Engineer",
+    keywords: ["spark", "hadoop", "kafka", "airflow", "sql", "python", "etl", "data pipeline", "bigquery", "snowflake"],
+    description: "Design and maintain data pipelines and warehouses.",
+    level: "Senior",
+  },
+  {
+    title: "Cloud Engineer",
+    keywords: ["aws", "azure", "gcp", "cloud", "terraform", "serverless", "lambda", "s3", "ec2", "kubernetes"],
+    description: "Architect and manage cloud-native solutions at scale.",
+    level: "Senior",
+  },
+  {
+    title: "Software Engineer",
+    keywords: ["java", "c++", "c#", "python", "algorithms", "data structures", "oop", "design patterns", "git"],
+    description: "Develop robust, scalable software across various platforms.",
+    level: "Junior-Senior",
+  },
+  {
+    title: "Product Manager",
+    keywords: ["product management", "roadmap", "agile", "scrum", "user research", "analytics", "jira", "figma", "stakeholder"],
+    description: "Define product vision and coordinate cross-functional teams.",
+    level: "Senior",
+  },
+  {
+    title: "UX/UI Designer",
+    keywords: ["figma", "sketch", "adobe xd", "ui", "ux", "design", "wireframe", "prototyping", "user research", "accessibility"],
+    description: "Design intuitive and visually stunning user experiences.",
+    level: "Mid-Senior",
+  },
+]
+
+interface JobMatch {
+  title: string
+  description: string
+  level: string
+  score: number
+  matchedKeywords: string[]
+}
+
+function getJobRecommendations(resume: Resume): JobMatch[] {
+  // Collect all text from skills, experiences, and parsedText
+  const skillNames = (resume.skills || []).map((s) => s.name.toLowerCase())
+  const expTitles = (resume.experiences || []).flatMap((e) =>
+    [e.title, e.company, e.description].filter(Boolean).map((t) => t!.toLowerCase())
+  )
+  const parsedLower = (resume.parsedText || "").toLowerCase()
+  const allText = [...skillNames, ...expTitles, parsedLower].join(" ")
+
+  const matches: JobMatch[] = []
+
+  for (const role of JOB_ROLES) {
+    const matchedKeywords = role.keywords.filter((kw) => allText.includes(kw.toLowerCase()))
+    const score = Math.round((matchedKeywords.length / role.keywords.length) * 100)
+    if (score >= 15) {
+      matches.push({
+        title: role.title,
+        description: role.description,
+        level: role.level,
+        score,
+        matchedKeywords: matchedKeywords.slice(0, 5),
+      })
+    }
+  }
+
+  // Sort by score desc, return top 4
+  return matches.sort((a, b) => b.score - a.score).slice(0, 4)
+}
+
+function ScoreBadge({ score }: { score: number }) {
+  const color =
+    score >= 70
+      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+      : score >= 40
+      ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+      : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+  return (
+    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold", color)}>
+      {score}% match
+    </span>
+  )
+}
 
 export default function ResumePage() {
+  const router = useRouter()
   const [resumes, setResumes] = useState<Resume[]>([])
   const [currentResume, setCurrentResume] = useState<Resume | null>(null)
   const [showParsed, setShowParsed] = useState(false)
@@ -31,6 +171,7 @@ export default function ResumePage() {
   const [dragActive, setDragActive] = useState(false)
   const [fileError, setFileError] = useState<string | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [jobMatches, setJobMatches] = useState<JobMatch[]>([])
 
   const fetchResumes = useCallback(async () => {
     try {
@@ -40,6 +181,9 @@ export default function ResumePage() {
         setResumes(data.resumes || [])
         const curr = (data.resumes || []).find((r: Resume) => r.isCurrent) || null
         setCurrentResume(curr)
+        if (curr) {
+          setJobMatches(getJobRecommendations(curr))
+        }
       }
     } catch (err) {
       console.error("Failed to fetch resumes", err)
@@ -266,7 +410,7 @@ export default function ResumePage() {
                 dragActive ? "text-primary" : "text-muted-foreground"
               )} />
               <p className="text-lg font-medium">
-                Drag & drop your resume or click to browse
+                Drag &amp; drop your resume or click to browse
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Supports PDF, DOCX, and TXT files (max 10MB)
@@ -280,7 +424,7 @@ export default function ResumePage() {
         <div className="rounded-xl border p-6 bg-card">
           <div className="flex items-center gap-3 mb-4">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <span className="font-medium">Uploading & parsing resume...</span>
+            <span className="font-medium">Uploading &amp; parsing resume...</span>
             <span className="text-sm text-muted-foreground">{Math.round(uploadProgress)}%</span>
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -430,6 +574,67 @@ export default function ResumePage() {
               </div>
             )}
           </div>
+
+          {/* ---------------------------------------------------------------- */}
+          {/* Job Recommendations                                               */}
+          {/* ---------------------------------------------------------------- */}
+          {jobMatches.length > 0 && (
+            <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div className="flex items-center gap-3 px-6 py-4 border-b bg-gradient-to-r from-primary/5 to-transparent">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Recommended Jobs</h3>
+                  <p className="text-xs text-muted-foreground">Based on your CV skills &amp; experience</p>
+                </div>
+              </div>
+              <div className="divide-y">
+                {jobMatches.map((job) => (
+                  <div
+                    key={job.title}
+                    className="flex items-start justify-between gap-4 px-6 py-4 transition-colors hover:bg-muted/30"
+                  >
+                    <div className="flex items-start gap-4 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                        <Briefcase className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="font-semibold text-sm">{job.title}</h4>
+                          <ScoreBadge score={job.score} />
+                          <span className="text-xs text-muted-foreground">{job.level}</span>
+                        </div>
+                        <p className="mt-0.5 text-sm text-muted-foreground">{job.description}</p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {job.matchedKeywords.map((kw) => (
+                            <span
+                              key={kw}
+                              className="inline-flex items-center gap-0.5 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs text-primary"
+                            >
+                              <Star className="h-2.5 w-2.5" />
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/interviews?role=${encodeURIComponent(job.title)}`
+                        )
+                      }
+                      className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-primary/90 transition-colors"
+                    >
+                      Practice
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {resumes.length > 1 && (
             <div className="rounded-xl border bg-card shadow-sm">

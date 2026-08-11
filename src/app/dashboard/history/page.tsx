@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Eye, ChevronDown, ChevronUp, Play, ArrowRight } from "lucide-react"
+import { Eye, Play, ArrowRight, RefreshCw, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/utils"
 import { TableSkeleton } from "@/components/ui/skeleton"
@@ -58,28 +58,51 @@ export default function HistoryPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<FilterType>("All")
   const [sessions, setSessions] = useState<Session[]>([])
+  const [activeTab, setActiveTab] = useState<"completed" | "inprogress">("completed")
 
-  useEffect(() => {
+  const fetchSessions = () => {
+    setLoading(true)
+    setError(null)
     const controller = new AbortController()
+
     Promise.all([
       new Promise((r) => setTimeout(r, 300)),
       fetch("/api/interview/list", { signal: controller.signal })
-        .then((res) => (res.ok ? res.json() : { sessions: [] }))
-        .then((data) => {
-          const completed = (data.sessions || []).filter(
-            (s: Session) => s.status === "COMPLETED"
-          )
-          setSessions(completed)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`Server error: ${res.status}`)
+          }
+          return res.json()
         })
-        .catch(() => {}),
-    ]).finally(() => setLoading(false))
+        .then((data) => {
+          setSessions(data.sessions || [])
+        }),
+    ])
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          setError(err.message || "Failed to load interview history. Please try again.")
+        }
+      })
+      .finally(() => setLoading(false))
+
     return () => controller.abort()
+  }
+
+  useEffect(() => {
+    const cleanup = fetchSessions()
+    return cleanup
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const completedSessions = sessions.filter((s) => s.status === "COMPLETED")
+  const inProgressSessions = sessions.filter((s) => s.status !== "COMPLETED")
+
+  const displaySessions = activeTab === "completed" ? completedSessions : inProgressSessions
 
   const filteredSessions =
     activeFilter === "All"
-      ? sessions
-      : sessions.filter((s) => s.interviewType === activeFilter)
+      ? displaySessions
+      : displaySessions.filter((s) => s.interviewType === activeFilter)
 
   if (loading) {
     return (
@@ -102,10 +125,19 @@ export default function HistoryPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-4xl py-12">
+      <div className="mx-auto max-w-4xl py-12 space-y-4">
         <Alert variant="error" title="Failed to load history">
           {error}
         </Alert>
+        <div className="flex justify-center">
+          <button
+            onClick={fetchSessions}
+            className="inline-flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Try Again
+          </button>
+        </div>
       </div>
     )
   }
@@ -115,7 +147,7 @@ export default function HistoryPage() {
       <div className="mx-auto max-w-4xl">
         <EmptyState
           icon={Play}
-          title="No completed interviews yet"
+          title="No interviews yet"
           description="Start your first interview to begin tracking your progress."
           action={
             <button
@@ -140,6 +172,43 @@ export default function HistoryPage() {
         </p>
       </div>
 
+      {/* Tabs: Completed / In Progress */}
+      <div className="flex gap-1 rounded-xl border bg-muted/50 p-1 w-fit">
+        <button
+          onClick={() => setActiveTab("completed")}
+          className={cn(
+            "rounded-lg px-4 py-2 text-sm font-medium transition-all",
+            activeTab === "completed"
+              ? "bg-background shadow text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Completed
+          {completedSessions.length > 0 && (
+            <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+              {completedSessions.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("inprogress")}
+          className={cn(
+            "rounded-lg px-4 py-2 text-sm font-medium transition-all",
+            activeTab === "inprogress"
+              ? "bg-background shadow text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          In Progress
+          {inProgressSessions.length > 0 && (
+            <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+              {inProgressSessions.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Type filters */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         {filterOptions.map((filter) => (
           <button
@@ -159,8 +228,25 @@ export default function HistoryPage() {
 
       {filteredSessions.length === 0 ? (
         <EmptyState
-          title="No results"
-          description={`No interviews found for "${activeFilter}". Try a different filter.`}
+          title={activeTab === "completed" ? "No completed interviews" : "No in-progress interviews"}
+          description={
+            activeFilter !== "All"
+              ? `No ${activeTab === "completed" ? "completed" : "in-progress"} interviews found for "${activeFilter}". Try a different filter.`
+              : activeTab === "completed"
+              ? "Complete an interview to see it here."
+              : "Start a new interview to see it here."
+          }
+          action={
+            activeTab === "completed" ? (
+              <button
+                onClick={() => router.push("/dashboard/interviews")}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl"
+              >
+                <Play className="h-4 w-4" />
+                Start an Interview
+              </button>
+            ) : undefined
+          }
         />
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card shadow-card">
@@ -171,14 +257,24 @@ export default function HistoryPage() {
                   <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Difficulty</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Answered</th>
+                  {activeTab === "completed" ? (
+                    <>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Answered</th>
+                    </>
+                  ) : (
+                    <th className="px-4 py-3 text-left text-sm font-medium">Progress</th>
+                  )}
                   <th className="px-4 py-3 text-right text-sm font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredSessions.map((session) => {
                   const score = session.overallScore
+                  const progressPct =
+                    session.questionCount > 0
+                      ? Math.round((session.answeredCount / session.questionCount) * 100)
+                      : 0
                   return (
                     <tr key={session.id} className="border-b last:border-0 transition-colors hover:bg-muted/50">
                       <td className="px-4 py-3 text-sm">
@@ -190,33 +286,62 @@ export default function HistoryPage() {
                       <td className="px-4 py-3 text-sm capitalize text-muted-foreground">
                         {session.difficulty.toLowerCase()}
                       </td>
-                      <td className="px-4 py-3">
-                        {score !== null ? (
-                          <span
-                            className={cn(
-                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                              getScoreBg(score),
-                              getScoreColor(score)
+                      {activeTab === "completed" ? (
+                        <>
+                          <td className="px-4 py-3">
+                            {score !== null ? (
+                              <span
+                                className={cn(
+                                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                                  getScoreBg(score),
+                                  getScoreColor(score)
+                                )}
+                              >
+                                {score.toFixed(1)}/10
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No score</span>
                             )}
-                          >
-                            {score.toFixed(1)}/10
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">No score</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {session.answeredCount}/{session.questionCount}
-                      </td>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground">
+                            {session.answeredCount}/{session.questionCount}
+                          </td>
+                        </>
+                      ) : (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-20 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-orange-400"
+                                style={{ width: `${progressPct}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {session.answeredCount}/{session.questionCount}
+                            </span>
+                          </div>
+                        </td>
+                      )}
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => router.push(`/dashboard/interviews/${session.id}/report`)}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
-                        >
-                          <Eye className="h-4 w-4" />
-                          View Report
-                          <ArrowRight className="h-3 w-3" />
-                        </button>
+                        {activeTab === "completed" ? (
+                          <button
+                            onClick={() => router.push(`/dashboard/interviews/${session.id}/report`)}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Report
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => router.push(`/dashboard/interviews/${session.id}`)}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 dark:text-orange-400 transition-colors hover:opacity-80"
+                          >
+                            <Clock className="h-4 w-4" />
+                            Resume
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )
