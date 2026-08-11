@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   Play,
   Clock,
@@ -12,11 +12,16 @@ import {
   Brain,
   ListChecks,
   Mic,
+  FileText,
+  Briefcase,
+  X,
+  AlertCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatRelativeTime } from "@/lib/utils"
 import { FormSkeleton } from "@/components/ui/skeleton"
 import { Alert } from "@/components/ui/alert"
+import type { Resume } from "@/types"
 
 interface InProgressSession {
   id: string
@@ -44,18 +49,51 @@ const DIFFICULTY_LABELS: Record<string, string> = {
 
 export default function InterviewsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const startButtonRef = useRef<HTMLButtonElement>(null)
+
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [inProgressSessions, setInProgressSessions] = useState<InProgressSession[]>([])
+  const [currentResume, setCurrentResume] = useState<Resume | null>(null)
+  const [resumeDismissed, setResumeDismissed] = useState(false)
+
+  // Feature B: role pre-fill from ?role= query param (set by the Practice button on Resume tab)
+  const roleParam = searchParams.get("role") || ""
+
   const [formData, setFormData] = useState({
     interviewType: "MIXED",
     difficulty: "MID",
     questionCount: 10,
     mode: "TEXT" as string,
-    jobDescription: "",
+    jobDescription: roleParam
+      ? `I am interviewing for the role of ${roleParam}. Please focus questions on the relevant skills, tools, and domain knowledge expected for this position.`
+      : "",
   })
 
+  // Sync jobDescription if roleParam is set on first render (handles hydration timing)
+  useEffect(() => {
+    if (roleParam && !formData.jobDescription) {
+      setFormData((prev) => ({
+        ...prev,
+        interviewType: "MIXED",
+        jobDescription: `I am interviewing for the role of ${roleParam}. Please focus questions on the relevant skills, tools, and domain knowledge expected for this position.`,
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleParam])
+
+  // Scroll to start button when arriving from Practice CTA
+  useEffect(() => {
+    if (roleParam) {
+      setTimeout(() => {
+        startButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 600)
+    }
+  }, [roleParam])
+
+  // Feature A + B: fetch both interview list and current resume in parallel
   useEffect(() => {
     const controller = new AbortController()
     Promise.all([
@@ -67,6 +105,14 @@ export default function InterviewsPage() {
             (s: InProgressSession) => s.status === "IN_PROGRESS"
           )
           setInProgressSessions(active)
+        })
+        .catch(() => {}),
+      fetch("/api/resume/list", { signal: controller.signal })
+        .then((res) => (res.ok ? res.json() : { resumes: [] }))
+        .then((data) => {
+          const current =
+            (data.resumes || []).find((r: Resume) => r.isCurrent) || null
+          setCurrentResume(current)
         })
         .catch(() => {}),
     ]).finally(() => setLoading(false))
@@ -86,6 +132,8 @@ export default function InterviewsPage() {
           questionCount: formData.questionCount,
           mode: formData.mode,
           jdText: formData.jobDescription || undefined,
+          // Feature A: explicitly pass resumeId; backend will also auto-attach as fallback
+          resumeId: currentResume?.id || undefined,
         }),
       })
       const data = await res.json()
@@ -139,6 +187,76 @@ export default function InterviewsPage() {
           </span>
         )}
       </div>
+
+      {/* ── Feature B: Role pre-fill banner ──────────────────────────────────── */}
+      {roleParam && (
+        <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Briefcase className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-primary">
+              🎯 Practicing for: {roleParam}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Job description has been pre-filled from your recommendation. You can edit it below.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature A: Resume indicator ───────────────────────────────────────── */}
+      {!resumeDismissed && (
+        currentResume ? (
+          <div className="flex items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/5 px-4 py-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-500/10">
+              <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+                Using resume: {currentResume.fileName}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Questions will be tailored to your skills and experience.
+              </p>
+            </div>
+            <button
+              onClick={() => setResumeDismissed(true)}
+              className="shrink-0 rounded p-1 hover:bg-green-500/10 text-muted-foreground"
+              aria-label="Dismiss resume notice"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/5 px-4 py-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/10">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                No resume uploaded
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Upload a CV for personalized, role-specific interview questions.{" "}
+                <button
+                  onClick={() => router.push("/dashboard/resume")}
+                  className="underline underline-offset-2 hover:text-foreground transition-colors"
+                >
+                  Add resume →
+                </button>
+              </p>
+            </div>
+            <button
+              onClick={() => setResumeDismissed(true)}
+              className="shrink-0 rounded p-1 hover:bg-amber-400/10 text-muted-foreground"
+              aria-label="Dismiss resume notice"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )
+      )}
 
       {error && (
         <Alert variant="error" dismissible title="Failed to start interview">
@@ -255,6 +373,7 @@ export default function InterviewsPage() {
           </div>
 
           <button
+            ref={startButtonRef}
             onClick={handleStart}
             disabled={starting}
             className="group flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 disabled:opacity-60"

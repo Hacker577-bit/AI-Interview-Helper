@@ -45,10 +45,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Question count must be between 1 and 30" }, { status: 400 })
     }
 
+    // Resolve the resume to use: prefer explicitly-provided resumeId, otherwise
+    // fall back to the user's current resume so questions are always tailored.
+    let resolvedResumeId: string | null = resumeId || null
+    let resumeSkills: string[] | undefined
+
+    if (resolvedResumeId) {
+      // Explicit resumeId supplied – verify ownership and fetch skills
+      const resume = await prisma.resume.findUnique({
+        where: { id: resolvedResumeId, userId: user.id },
+        include: { skills: true },
+      })
+      if (resume) {
+        resumeSkills = resume.skills.map((s) => s.name).filter(Boolean)
+      } else {
+        // Provided id not found / not owned – clear it so we don't store a bad FK
+        resolvedResumeId = null
+      }
+    } else {
+      // No resumeId provided – auto-attach the user's active resume
+      const currentResume = await prisma.resume.findFirst({
+        where: { userId: user.id, isCurrent: true },
+        include: { skills: true },
+      })
+      if (currentResume) {
+        resolvedResumeId = currentResume.id
+        resumeSkills = currentResume.skills.map((s) => s.name).filter(Boolean)
+      }
+    }
+
     const session = await prisma.interviewSession.create({
       data: {
         userId: user.id,
-        resumeId: resumeId || null,
+        resumeId: resolvedResumeId,
         jdText: jdText || null,
         interviewType,
         difficulty,
@@ -60,15 +89,6 @@ export async function POST(req: NextRequest) {
     })
 
     await incrementInterviewUsage(user.id)
-
-    let resumeSkills: string[] | undefined
-    if (resumeId) {
-      const resume = await prisma.resume.findUnique({
-        where: { id: resumeId, userId: user.id },
-        include: { skills: true },
-      })
-      resumeSkills = resume?.skills.map((s) => s.name).filter(Boolean)
-    }
 
     const aiQuestions = await generateQuestionsWithAI(interviewType, difficulty, questionCount, resumeSkills, jdText)
     const questions = aiQuestions.length > 0 ? aiQuestions : generateQuestions(interviewType, difficulty, questionCount)
