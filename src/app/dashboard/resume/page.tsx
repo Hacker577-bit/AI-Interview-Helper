@@ -175,6 +175,7 @@ export default function ResumePage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [jobMatches, setJobMatches] = useState<JobMatch[]>([])
   const [startingInterview, setStartingInterview] = useState(false)
+  const [showUploader, setShowUploader] = useState(false)
 
   const handleStartTailoredInterview = async (roleTitle?: string) => {
     setStartingInterview(true)
@@ -333,6 +334,7 @@ export default function ResumePage() {
       }
 
       setPendingFile(null)
+      setShowUploader(false)
       await fetchResumes()
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upload failed"
@@ -377,14 +379,25 @@ export default function ResumePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">My Resume</h2>
-        <p className="text-muted-foreground">
-          Upload and manage your resume for tailored interview questions.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">My Resume</h2>
+          <p className="text-muted-foreground mt-1">
+            Upload and manage your resume for tailored interview questions.
+          </p>
+        </div>
+        {currentResume && !showUploader && (
+          <button
+            onClick={() => setShowUploader(true)}
+            className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow hover:bg-primary/90 transition-colors"
+          >
+            <UploadCloud className="h-4 w-4" />
+            Upload New
+          </button>
+        )}
       </div>
 
-      {!uploading && (
+      {!uploading && (!currentResume || showUploader) && (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
