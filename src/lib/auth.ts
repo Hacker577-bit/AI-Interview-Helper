@@ -50,10 +50,6 @@ function sanitizeInput(input: string): string {
   return input.replace(/[<>]/g, "")
 }
 
-function getClientIp(): string {
-  return "server"
-}
-
 export function checkAccountLockout(email: string): { locked: boolean; remainingMs: number } {
   const key = normalizeEmail(email)
   const entry = failedAttempts.get(key)

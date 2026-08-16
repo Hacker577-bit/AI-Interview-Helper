@@ -6,7 +6,6 @@
 
 import { writeFile, readFile, mkdir, unlink } from "fs/promises"
 import path from "path"
-import { v4 as uuidv4 } from "uuid"
 
 const UPLOAD_DIR = path.join(process.cwd(), "uploads")
 
@@ -17,7 +16,7 @@ async function ensureUploadDir() {
 export async function saveFile(file: File, prefix: string): Promise<{ url: string; filepath: string }> {
   await ensureUploadDir()
   const ext = file.name.split(".").pop() || "bin"
-  const filename = `${prefix}-${uuidv4()}.${ext}`
+  const filename = `${prefix}-${crypto.randomUUID()}.${ext}`
   const filepath = path.join(UPLOAD_DIR, filename)
   const buffer = Buffer.from(await file.arrayBuffer())
   await writeFile(filepath, buffer)
@@ -48,17 +47,5 @@ export async function deleteFile(filename: string): Promise<boolean> {
   }
 }
 
-// Supabase storage adapter for production
-export async function saveFileToSupabase(file: File, prefix: string): Promise<{ url: string }> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !supabaseKey) {
-    // Fall back to local storage
-    return saveFile(file, prefix)
-  }
-
-  // For now, just use local storage with a note
-  console.log("Supabase storage integration pending - using local storage")
-  return saveFile(file, prefix)
-}
+// ponytail: local filesystem is ephemeral on Vercel. Upgrade path: replace saveFile calls
+// with a @supabase/storage-js upload when NEXT_PUBLIC_SUPABASE_URL is set.

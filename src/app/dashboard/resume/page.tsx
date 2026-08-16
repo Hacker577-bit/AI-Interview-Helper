@@ -21,8 +21,7 @@ import {
   MessageSquare,
 } from "lucide-react"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-import { formatDate, formatRelativeTime } from "@/lib/utils"
+import { cn, formatDate, formatRelativeTime } from "@/lib/utils"
 import { PdfViewer } from "@/components/resume/pdf-viewer"
 import { Badge } from "@/components/ui/badge"
 import type { Resume } from "@/types"

@@ -98,19 +98,7 @@ export async function incrementInterviewUsage(userId: string): Promise<void> {
   })
 }
 
-export async function resetMonthlyUsage(): Promise<void> {
-  const now = new Date()
-  await prisma.user.updateMany({
-    where: { interviewUsageReset: { lt: now } },
-    data: {
-      interviewUsageMonth: 0,
-      interviewUsageReset: getNextMonthReset(),
-    },
-  })
-}
-
 function getNextMonthReset(): Date {
   const now = new Date()
-  const reset = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0)
-  return reset
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0)
 }

@@ -17,8 +17,7 @@ import {
   X,
   AlertCircle,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { formatRelativeTime } from "@/lib/utils"
+import { cn, formatRelativeTime } from "@/lib/utils"
 import { FormSkeleton } from "@/components/ui/skeleton"
 import { Alert } from "@/components/ui/alert"
 import type { Resume } from "@/types"
